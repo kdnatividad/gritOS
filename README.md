@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# gritOS
 
-## Getting Started
+**Run your life on discipline.**
 
-First, run the development server:
+gritOS is a no-BS workout tracking app built as a personal operating system for consistency.
+It helps you log workouts, track progress, and execute daily—without relying on motivation.
+
+---
+
+## 🚀 Features
+
+- Track workouts and exercises
+- Log sets, reps, and weight
+- Fast, distraction-free logging (even mid-set)
+- Monitor progress over time
+- Clean, minimal interface
+
+---
+
+## 🧠 Philosophy
+
+> Execution over motivation.
+
+gritOS is designed for people who train with intent.
+No gamification. No noise. Just a system that helps you show up, do the work, and improve.
+
+---
+
+## 📦 Installation
 
 ```bash
+git clone https://github.com/kdnatividad/gritOS.git
+cd gritOS
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📈 Roadmap
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [ ] Workout templates
+- [ ] Progress analytics
+- [ ] Offline support
+- [ ] Cloud sync
+- [ ] UI/UX improvements
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🤝 Contributing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This is currently a personal project, but feedback and suggestions are welcome.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📄 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MIT
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+**Consistency is the system.**
