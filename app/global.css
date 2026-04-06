@@ -8,8 +8,9 @@
   --bg-card: #161616;
   --bg-hover: #1c1c1c;
   --border: #2a2a2a;
-  --accent: #c8ff00;
-  --accent-dim: #a8d900;
+  --accent: #D61530;
+  --accent-dim: #B8102A;
+  --accent-glow: rgba(214, 21, 48, 0.12);
   --text-primary: #f0f0f0;
   --text-secondary: #888888;
   --text-muted: #444444;
@@ -62,7 +63,7 @@ h1, h2, h3, h4 {
 }
 .btn-primary {
   background: var(--accent);
-  color: #000;
+  color: #fff;
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 700;
   letter-spacing: 0.1em;

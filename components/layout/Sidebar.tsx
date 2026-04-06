@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
@@ -27,20 +28,29 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-      <div style={{ padding: "0 20px 32px" }}>
-        <h1 style={{ fontSize: "28px", color: "var(--accent)", lineHeight: 1 }}>
-          grit<span style={{ color: "var(--text-primary)" }}>OS</span>
-        </h1>
-        <p
-          style={{
-            fontSize: "10px",
-            color: "var(--text-muted)",
-            letterSpacing: "0.15em",
-            marginTop: "2px",
-          }}
-        >
-          BUILT BY GRIT
-        </p>
+      <div style={{ padding: "0 20px 32px", display: "flex", alignItems: "center", gap: "12px" }}>
+        <Image
+          src="/Grit-G.png"
+          alt="Grit"
+          width={36}
+          height={36}
+          style={{ display: "block" }}
+        />
+        <div>
+          <h1 style={{ fontSize: "22px", color: "var(--text-primary)", lineHeight: 1, fontFamily: "Barlow Condensed, sans-serif", letterSpacing: "0.06em" }}>
+            grit<span style={{ color: "var(--accent)" }}>OS</span>
+          </h1>
+          <p
+            style={{
+              fontSize: "9px",
+              color: "var(--text-muted)",
+              letterSpacing: "0.18em",
+              marginTop: "2px",
+            }}
+          >
+            BUILT BY GRIT
+          </p>
+        </div>
       </div>
 
       {/* Nav */}
@@ -57,7 +67,7 @@ export default function Sidebar() {
                 gap: "10px",
                 padding: "10px 20px",
                 color: active ? "var(--accent)" : "var(--text-secondary)",
-                background: active ? "rgba(200,255,0,0.05)" : "transparent",
+                background: active ? "var(--accent-glow)" : "transparent",
                 borderLeft: active
                   ? "2px solid var(--accent)"
                   : "2px solid transparent",

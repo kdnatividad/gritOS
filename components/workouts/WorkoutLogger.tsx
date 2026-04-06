@@ -157,7 +157,7 @@ export default function WorkoutLogger({
                   borderRadius: "2px",
                   cursor: "pointer",
                   background: isSelected
-                    ? "rgba(200,255,0,0.08)"
+                    ? "var(--accent-glow)"
                     : "transparent",
                   borderLeft: isSelected
                     ? "2px solid var(--accent)"
@@ -200,7 +200,7 @@ export default function WorkoutLogger({
                       fontFamily: "Barlow Condensed, sans-serif",
                       fontWeight: 700,
                       color: "var(--accent)",
-                      background: "rgba(200,255,0,0.1)",
+                      background: "var(--accent-glow)",
                       padding: "2px 6px",
                       borderRadius: "2px",
                     }}

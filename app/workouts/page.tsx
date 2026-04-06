@@ -96,7 +96,7 @@ export default function WorkoutsPage() {
           <div
             style={{
               padding: "6px 14px",
-              background: "rgba(200,255,0,0.1)",
+              background: "var(--accent-glow)",
               border: "1px solid var(--accent)",
               borderRadius: "2px",
               fontFamily: "Barlow Condensed, sans-serif",
@@ -271,7 +271,7 @@ export default function WorkoutsPage() {
               borderColor: filter === cat ? "var(--accent)" : "var(--border)",
               color: filter === cat ? "var(--accent)" : "var(--text-secondary)",
               background:
-                filter === cat ? "rgba(200,255,0,0.05)" : "transparent",
+                filter === cat ? "var(--accent-glow)" : "transparent",
               borderRadius: "2px",
               cursor: "pointer",
               transition: "all 0.15s",
