@@ -47,7 +47,6 @@ export default function Dashboard() {
 
   return (
     <div style={{ maxWidth: "900px" }}>
-      {/* Header */}
       <div style={{ marginBottom: "32px" }}>
         <h1 style={{ fontSize: "36px", color: "var(--text-primary)" }}>
           DASHBOARD
@@ -62,7 +61,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Stat Cards */}
       <div
         style={{
           display: "grid",
@@ -89,7 +87,6 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Recent Activity */}
       <div className="card" style={{ padding: "24px" }}>
         <h2
           style={{
@@ -159,7 +156,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Quick Actions */}
       <div
         style={{
           display: "grid",
@@ -175,7 +171,6 @@ export default function Dashboard() {
               padding: "20px",
               cursor: "pointer",
               transition: "border-color 0.15s",
-              borderColor: "var(--border)",
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.borderColor = "var(--accent)")
