@@ -12,6 +12,26 @@ interface Exercise {
   isDefault: boolean;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  push: "#c8ff00",
+  pull: "#00cfff",
+  legs: "#ff6b35",
+  core: "#ff3bff",
+  cardio: "#ffcc00",
+};
+
+const INPUT: React.CSSProperties = {
+  width: "100%",
+  padding: "11px 14px",
+  background: "var(--bg-hover)",
+  border: "1px solid var(--border)",
+  borderRadius: "8px",
+  color: "var(--text-primary)",
+  fontFamily: "Unica One, sans-serif",
+  fontSize: "14px",
+  outline: "none",
+};
+
 export default function WorkoutsPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,13 +90,6 @@ export default function WorkoutsPage() {
     filter === "all"
       ? exercises
       : exercises.filter((e) => e.category === filter);
-  const categoryColor: Record<string, string> = {
-    push: "#c8ff00",
-    pull: "#00cfff",
-    legs: "#ff6b35",
-    core: "#ff3bff",
-    cardio: "#ffcc00",
-  };
 
   if (view === "logger" && sessionId) {
     return (
@@ -86,26 +99,24 @@ export default function WorkoutsPage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "24px",
+            marginBottom: "28px",
           }}
         >
           <div>
-            <h1 style={{ fontSize: "36px" }}>ACTIVE SESSION</h1>
-            <p style={{ color: "var(--text-secondary)", marginTop: "4px" }}>
+            <h1 style={{ fontSize: "24px" }}>Active Session</h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: "12px", marginTop: "4px" }}>
               Select an exercise and log your sets
             </p>
           </div>
           <div
             style={{
-              padding: "6px 14px",
+              padding: "6px 16px",
               background: "var(--accent-glow)",
-              border: "1px solid var(--accent)",
-              borderRadius: "2px",
-              fontFamily: "Barlow Condensed, sans-serif",
-              fontWeight: 700,
+              border: "1px solid rgba(224,90,27,0.35)",
+              borderRadius: "20px",
               fontSize: "12px",
               color: "var(--accent)",
-              letterSpacing: "0.1em",
+              letterSpacing: "0.06em",
             }}
           >
             ● LIVE
@@ -122,6 +133,7 @@ export default function WorkoutsPage() {
 
   return (
     <div style={{ maxWidth: "900px" }}>
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -131,45 +143,52 @@ export default function WorkoutsPage() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: "36px" }}>WORKOUTS</h1>
-          <p style={{ color: "var(--text-secondary)", marginTop: "4px" }}>
+          <h1 style={{ fontSize: "24px" }}>Workouts</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "12px", marginTop: "4px" }}>
             Manage exercises and start sessions
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           <button className="btn-ghost" onClick={() => setShowAdd(true)}>
-            + ADD EXERCISE
+            + Add Exercise
           </button>
           <button className="btn-primary" onClick={handleStartSession}>
-            ▶ START SESSION
+            ▶ Start Session
           </button>
         </div>
       </div>
 
+      {/* Add Exercise Modal */}
       {showAdd && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.8)",
+            background: "rgba(0,0,0,0.75)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 50,
           }}
+          onClick={() => setShowAdd(false)}
         >
-          <div className="card" style={{ padding: "32px", width: "400px" }}>
-            <h2 style={{ fontSize: "22px", marginBottom: "24px" }}>
-              NEW EXERCISE
+          <div
+            className="card"
+            style={{ padding: "32px", width: "420px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ fontSize: "20px", marginBottom: "28px" }}>
+              New Exercise
             </h2>
-            <div style={{ marginBottom: "16px" }}>
+
+            <div style={{ marginBottom: "20px" }}>
               <label
                 style={{
-                  fontSize: "11px",
+                  fontSize: "10px",
                   color: "var(--text-muted)",
                   letterSpacing: "0.1em",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
                 }}
               >
                 EXERCISE NAME
@@ -181,27 +200,18 @@ export default function WorkoutsPage() {
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                 placeholder="e.g. Romanian Deadlift"
                 autoFocus
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  background: "var(--bg-hover)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "2px",
-                  color: "var(--text-primary)",
-                  fontFamily: "Barlow, sans-serif",
-                  fontSize: "14px",
-                  outline: "none",
-                }}
+                style={INPUT}
               />
             </div>
-            <div style={{ marginBottom: "24px" }}>
+
+            <div style={{ marginBottom: "28px" }}>
               <label
                 style={{
-                  fontSize: "11px",
+                  fontSize: "10px",
                   color: "var(--text-muted)",
                   letterSpacing: "0.1em",
                   display: "block",
-                  marginBottom: "6px",
+                  marginBottom: "10px",
                 }}
               >
                 CATEGORY
@@ -212,28 +222,26 @@ export default function WorkoutsPage() {
                     key={cat}
                     onClick={() => setNewCategory(cat)}
                     style={{
-                      padding: "6px 14px",
-                      fontFamily: "Barlow Condensed, sans-serif",
-                      fontWeight: 600,
+                      padding: "7px 16px",
                       fontSize: "12px",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
                       border: "1px solid",
                       borderColor:
                         newCategory === cat
-                          ? categoryColor[cat]
+                          ? CATEGORY_COLORS[cat]
                           : "var(--border)",
                       color:
                         newCategory === cat
-                          ? categoryColor[cat]
+                          ? CATEGORY_COLORS[cat]
                           : "var(--text-secondary)",
                       background:
                         newCategory === cat
-                          ? `${categoryColor[cat]}15`
+                          ? `${CATEGORY_COLORS[cat]}18`
                           : "transparent",
-                      borderRadius: "2px",
+                      borderRadius: "8px",
                       cursor: "pointer",
                       transition: "all 0.15s",
+                      fontFamily: "Unica One, sans-serif",
                     }}
                   >
                     {cat}
@@ -241,42 +249,43 @@ export default function WorkoutsPage() {
                 ))}
               </div>
             </div>
+
             <div style={{ display: "flex", gap: "8px" }}>
               <button
                 className="btn-primary"
                 onClick={handleAdd}
                 style={{ flex: 1 }}
               >
-                ADD EXERCISE
+                Add Exercise
               </button>
               <button className="btn-ghost" onClick={() => setShowAdd(false)}>
-                CANCEL
+                Cancel
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div style={{ display: "flex", gap: "4px", marginBottom: "20px" }}>
+      {/* Category Filter */}
+      <div style={{ display: "flex", gap: "6px", marginBottom: "22px" }}>
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setFilter(cat)}
             style={{
-              padding: "6px 16px",
-              fontFamily: "Barlow Condensed, sans-serif",
-              fontWeight: 600,
+              padding: "7px 18px",
               fontSize: "12px",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
+              letterSpacing: "0.04em",
               border: "1px solid",
               borderColor: filter === cat ? "var(--accent)" : "var(--border)",
-              color: filter === cat ? "var(--accent)" : "var(--text-secondary)",
+              color:
+                filter === cat ? "var(--accent)" : "var(--text-secondary)",
               background:
                 filter === cat ? "var(--accent-glow)" : "transparent",
-              borderRadius: "2px",
+              borderRadius: "8px",
               cursor: "pointer",
               transition: "all 0.15s",
+              fontFamily: "Unica One, sans-serif",
             }}
           >
             {cat}
@@ -284,14 +293,17 @@ export default function WorkoutsPage() {
         ))}
       </div>
 
+      {/* Exercise Grid */}
       {loading ? (
-        <p style={{ color: "var(--text-muted)" }}>Loading exercises...</p>
+        <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
+          Loading exercises...
+        </p>
       ) : (
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "8px",
+            gap: "10px",
           }}
         >
           {filtered.map((exercise) => (
@@ -300,12 +312,12 @@ export default function WorkoutsPage() {
               className="card"
               onClick={() => setOverview(exercise)}
               style={{
-                padding: "16px 20px",
+                padding: "18px 22px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                transition: "border-color 0.15s",
                 cursor: "pointer",
+                transition: "border-color 0.15s",
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.borderColor = "var(--accent)")
@@ -315,14 +327,7 @@ export default function WorkoutsPage() {
               }
             >
               <div>
-                <p
-                  style={{
-                    fontFamily: "Barlow Condensed, sans-serif",
-                    fontWeight: 600,
-                    fontSize: "15px",
-                    letterSpacing: "0.05em",
-                  }}
-                >
+                <p style={{ fontSize: "15px", letterSpacing: "0.02em" }}>
                   {exercise.name}
                 </p>
                 {exercise.isDefault && (
@@ -341,18 +346,15 @@ export default function WorkoutsPage() {
               <span
                 style={{
                   fontSize: "10px",
-                  fontFamily: "Barlow Condensed, sans-serif",
-                  fontWeight: 700,
                   letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color:
-                    categoryColor[exercise.category] || "var(--text-muted)",
-                  border: `1px solid ${categoryColor[exercise.category] || "var(--border)"}`,
-                  padding: "2px 8px",
-                  borderRadius: "2px",
+                  color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
+                  border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
+                  padding: "3px 10px",
+                  borderRadius: "6px",
+                  background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
                 }}
               >
-                {exercise.category}
+                {exercise.category.toUpperCase()}
               </span>
             </div>
           ))}

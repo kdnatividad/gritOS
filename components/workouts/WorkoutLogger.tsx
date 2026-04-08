@@ -16,17 +16,19 @@ interface Props {
   onFinish: () => void;
 }
 
-export default function WorkoutLogger({
-  exercises,
-  sessionId,
-  onFinish,
-}: Props) {
+const CATEGORY_COLORS: Record<string, string> = {
+  push: "#c8ff00",
+  pull: "#00cfff",
+  legs: "#ff6b35",
+  core: "#ff3bff",
+  cardio: "#ffcc00",
+};
+
+export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props) {
   const { sets, addSet, removeSet } = useWorkoutStore();
   const { unit, toggleUnit, increment, setIncrement } = usePrefsStore();
 
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null,
-  );
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [reps, setReps] = useState(10);
   const [weight, setWeight] = useState(60);
   const [notes, setNotes] = useState("");
@@ -34,16 +36,8 @@ export default function WorkoutLogger({
   const [search, setSearch] = useState("");
 
   const filtered = exercises.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()),
+    e.name.toLowerCase().includes(search.toLowerCase())
   );
-
-  const categoryColor: Record<string, string> = {
-    push: "#c8ff00",
-    pull: "#00cfff",
-    legs: "#ff6b35",
-    core: "#ff3bff",
-    cardio: "#ffcc00",
-  };
 
   const handleLogSet = async () => {
     if (!selectedExercise) return;
@@ -82,28 +76,27 @@ export default function WorkoutLogger({
     ? sets.filter((s) => s.exerciseId === selectedExercise.id)
     : [];
 
-  const btnStyle: React.CSSProperties = {
-    padding: "8px 12px",
-    fontFamily: "Barlow Condensed, sans-serif",
-    fontWeight: 700,
+  const stepBtn: React.CSSProperties = {
+    padding: "9px 14px",
     fontSize: "14px",
     background: "var(--bg-hover)",
     border: "1px solid var(--border)",
     color: "var(--text-primary)",
-    borderRadius: "2px",
+    borderRadius: "8px",
     cursor: "pointer",
     minWidth: "48px",
+    fontFamily: "Unica One, sans-serif",
+    transition: "border-color 0.15s",
   };
 
-  const inputStyle: React.CSSProperties = {
-    padding: "8px 12px",
+  const numInput: React.CSSProperties = {
+    padding: "9px 12px",
     background: "var(--bg-hover)",
     border: "1px solid var(--border)",
-    borderRadius: "2px",
+    borderRadius: "8px",
     color: "var(--text-primary)",
-    fontFamily: "Barlow Condensed, sans-serif",
+    fontFamily: "Unica One, sans-serif",
     fontSize: "18px",
-    fontWeight: 700,
     textAlign: "center",
     outline: "none",
     width: "80px",
@@ -113,7 +106,7 @@ export default function WorkoutLogger({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "280px 1fr",
+        gridTemplateColumns: "270px 1fr",
         gap: "16px",
         height: "600px",
       }}
@@ -123,9 +116,7 @@ export default function WorkoutLogger({
         className="card"
         style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
       >
-        <div
-          style={{ padding: "16px", borderBottom: "1px solid var(--border)" }}
-        >
+        <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
           <input
             type="text"
             placeholder="Search exercises..."
@@ -133,12 +124,12 @@ export default function WorkoutLogger({
             onChange={(e) => setSearch(e.target.value)}
             style={{
               width: "100%",
-              padding: "8px 12px",
+              padding: "9px 13px",
               background: "var(--bg-hover)",
               border: "1px solid var(--border)",
-              borderRadius: "2px",
+              borderRadius: "8px",
               color: "var(--text-primary)",
-              fontFamily: "Barlow, sans-serif",
+              fontFamily: "Unica One, sans-serif",
               fontSize: "13px",
               outline: "none",
             }}
@@ -153,32 +144,26 @@ export default function WorkoutLogger({
                 key={ex.id}
                 onClick={() => setSelectedExercise(ex)}
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: "2px",
+                  padding: "10px 13px",
+                  borderRadius: "8px",
                   cursor: "pointer",
-                  background: isSelected
-                    ? "var(--accent-glow)"
-                    : "transparent",
-                  borderLeft: isSelected
-                    ? "2px solid var(--accent)"
-                    : "2px solid transparent",
-                  marginBottom: "2px",
-                  transition: "all 0.1s",
+                  background: isSelected ? "var(--accent-glow)" : "transparent",
+                  border: isSelected
+                    ? "1px solid rgba(224,90,27,0.3)"
+                    : "1px solid transparent",
+                  marginBottom: "3px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  transition: "all 0.1s",
                 }}
               >
                 <div>
                   <p
                     style={{
-                      fontFamily: "Barlow Condensed, sans-serif",
-                      fontWeight: 600,
                       fontSize: "13px",
-                      letterSpacing: "0.04em",
-                      color: isSelected
-                        ? "var(--accent)"
-                        : "var(--text-primary)",
+                      letterSpacing: "0.02em",
+                      color: isSelected ? "var(--accent)" : "var(--text-primary)",
                     }}
                   >
                     {ex.name}
@@ -186,7 +171,7 @@ export default function WorkoutLogger({
                   <p
                     style={{
                       fontSize: "10px",
-                      color: categoryColor[ex.category] || "var(--text-muted)",
+                      color: CATEGORY_COLORS[ex.category] || "var(--text-muted)",
                       marginTop: "1px",
                     }}
                   >
@@ -196,13 +181,11 @@ export default function WorkoutLogger({
                 {exSets > 0 && (
                   <span
                     style={{
-                      fontSize: "10px",
-                      fontFamily: "Barlow Condensed, sans-serif",
-                      fontWeight: 700,
+                      fontSize: "11px",
                       color: "var(--accent)",
                       background: "var(--accent-glow)",
-                      padding: "2px 6px",
-                      borderRadius: "2px",
+                      padding: "2px 8px",
+                      borderRadius: "6px",
                     }}
                   >
                     {exSets}s
@@ -225,90 +208,78 @@ export default function WorkoutLogger({
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "column",
-              gap: "8px",
+              gap: "10px",
               color: "var(--text-muted)",
             }}
           >
-            <p style={{ fontSize: "32px" }}>◈</p>
-            <p>Select an exercise to start logging</p>
+            <p style={{ fontSize: "28px" }}>◈</p>
+            <p style={{ fontSize: "13px" }}>Select an exercise to start logging</p>
           </div>
         ) : (
           <>
+            {/* Exercise header */}
             <div
               className="card"
               style={{
-                padding: "16px 20px",
+                padding: "16px 22px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
             >
               <div>
-                <h2 style={{ fontSize: "22px", color: "var(--accent)" }}>
+                <h2 style={{ fontSize: "20px", color: "var(--accent)" }}>
                   {selectedExercise.name}
                 </h2>
-                <p
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--text-muted)",
-                    marginTop: "2px",
-                  }}
-                >
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>
                   {exerciseSets.length} sets logged this session
                 </p>
               </div>
               <button
                 onClick={toggleUnit}
                 style={{
-                  padding: "6px 14px",
-                  fontFamily: "Barlow Condensed, sans-serif",
-                  fontWeight: 700,
+                  padding: "7px 16px",
                   fontSize: "13px",
-                  letterSpacing: "0.1em",
-                  border: "1px solid var(--accent)",
+                  letterSpacing: "0.06em",
+                  border: "1px solid rgba(224,90,27,0.4)",
                   color: "var(--accent)",
-                  background: "transparent",
-                  borderRadius: "2px",
+                  background: "var(--accent-glow)",
+                  borderRadius: "8px",
                   cursor: "pointer",
+                  fontFamily: "Unica One, sans-serif",
                 }}
               >
                 {unit.toUpperCase()}
               </button>
             </div>
 
-            <div className="card" style={{ padding: "20px" }}>
+            {/* Input panel */}
+            <div className="card" style={{ padding: "22px" }}>
               <div
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  gap: "16px",
-                  marginBottom: "16px",
+                  gap: "20px",
+                  marginBottom: "18px",
                 }}
               >
+                {/* Weight */}
                 <div>
                   <label
                     style={{
-                      fontSize: "11px",
+                      fontSize: "10px",
                       color: "var(--text-muted)",
                       letterSpacing: "0.1em",
                       display: "block",
-                      marginBottom: "8px",
+                      marginBottom: "10px",
                     }}
                   >
                     WEIGHT ({unit})
                   </label>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <button
-                      onClick={() =>
-                        setWeight((w) => Math.max(0, w - increment))
-                      }
-                      style={btnStyle}
+                      onClick={() => setWeight((w) => Math.max(0, w - increment))}
+                      style={stepBtn}
                     >
                       −{increment}
                     </button>
@@ -316,38 +287,34 @@ export default function WorkoutLogger({
                       type="number"
                       value={weight}
                       onChange={(e) => setWeight(Number(e.target.value))}
-                      style={inputStyle}
+                      style={numInput}
                     />
                     <button
                       onClick={() => setWeight((w) => w + increment)}
-                      style={btnStyle}
+                      style={stepBtn}
                     >
                       +{increment}
                     </button>
                   </div>
                 </div>
+
+                {/* Reps */}
                 <div>
                   <label
                     style={{
-                      fontSize: "11px",
+                      fontSize: "10px",
                       color: "var(--text-muted)",
                       letterSpacing: "0.1em",
                       display: "block",
-                      marginBottom: "8px",
+                      marginBottom: "10px",
                     }}
                   >
                     REPS
                   </label>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <button
                       onClick={() => setReps((r) => Math.max(1, r - 1))}
-                      style={btnStyle}
+                      style={stepBtn}
                     >
                       −1
                     </button>
@@ -355,18 +322,16 @@ export default function WorkoutLogger({
                       type="number"
                       value={reps}
                       onChange={(e) => setReps(Number(e.target.value))}
-                      style={inputStyle}
+                      style={numInput}
                     />
-                    <button
-                      onClick={() => setReps((r) => r + 1)}
-                      style={btnStyle}
-                    >
+                    <button onClick={() => setReps((r) => r + 1)} style={stepBtn}>
                       +1
                     </button>
                   </div>
                 </div>
               </div>
 
+              {/* Increment selector */}
               <div
                 style={{
                   display: "flex",
@@ -375,13 +340,7 @@ export default function WorkoutLogger({
                   marginBottom: "16px",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--text-muted)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
+                <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
                   INCREMENT:
                 </span>
                 {[1, 5].map((val) => (
@@ -389,21 +348,15 @@ export default function WorkoutLogger({
                     key={val}
                     onClick={() => setIncrement(val as 1 | 5)}
                     style={{
-                      padding: "4px 12px",
-                      fontFamily: "Barlow Condensed, sans-serif",
-                      fontWeight: 600,
+                      padding: "5px 14px",
                       fontSize: "12px",
-                      letterSpacing: "0.08em",
                       border: "1px solid",
-                      borderColor:
-                        increment === val ? "var(--accent)" : "var(--border)",
-                      color:
-                        increment === val
-                          ? "var(--accent)"
-                          : "var(--text-secondary)",
-                      background: "transparent",
-                      borderRadius: "2px",
+                      borderColor: increment === val ? "var(--accent)" : "var(--border)",
+                      color: increment === val ? "var(--accent)" : "var(--text-secondary)",
+                      background: increment === val ? "var(--accent-glow)" : "transparent",
+                      borderRadius: "6px",
                       cursor: "pointer",
+                      fontFamily: "Unica One, sans-serif",
                     }}
                   >
                     {val}
@@ -411,42 +364,46 @@ export default function WorkoutLogger({
                 ))}
               </div>
 
+              {/* Notes */}
               <input
                 type="text"
                 placeholder="Notes (optional)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                style={{ ...inputStyle, width: "100%", marginBottom: "16px" }}
+                style={{
+                  ...numInput,
+                  width: "100%",
+                  fontSize: "14px",
+                  marginBottom: "16px",
+                  textAlign: "left",
+                  padding: "10px 14px",
+                }}
               />
 
               <button
                 className="btn-primary"
                 onClick={handleLogSet}
                 disabled={saving}
-                style={{ width: "100%", padding: "12px", fontSize: "16px" }}
+                style={{ width: "100%", padding: "13px", fontSize: "15px" }}
               >
-                {saving ? "SAVING..." : `LOG SET ${exerciseSets.length + 1}`}
+                {saving ? "Saving..." : `Log Set ${exerciseSets.length + 1}`}
               </button>
             </div>
 
+            {/* Logged sets */}
             {exerciseSets.length > 0 && (
-              <div className="card" style={{ padding: "16px 20px" }}>
+              <div className="card" style={{ padding: "18px 22px" }}>
                 <h3
                   style={{
-                    fontSize: "14px",
+                    fontSize: "11px",
                     color: "var(--text-muted)",
-                    marginBottom: "12px",
+                    letterSpacing: "0.1em",
+                    marginBottom: "14px",
                   }}
                 >
                   LOGGED SETS
                 </h3>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "6px",
-                  }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {exerciseSets.map((s) => (
                     <div
                       key={s.id}
@@ -454,29 +411,16 @@ export default function WorkoutLogger({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        padding: "8px 12px",
+                        padding: "9px 14px",
                         background: "var(--bg-hover)",
-                        borderRadius: "2px",
+                        borderRadius: "8px",
                       }}
                     >
-                      <span
-                        style={{
-                          fontFamily: "Barlow Condensed, sans-serif",
-                          color: "var(--text-muted)",
-                          fontSize: "13px",
-                        }}
-                      >
-                        SET {s.setNumber}
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                        Set {s.setNumber}
                       </span>
-                      <span
-                        style={{
-                          fontFamily: "Barlow Condensed, sans-serif",
-                          fontWeight: 700,
-                          color: "var(--accent)",
-                        }}
-                      >
-                        {s.weight}
-                        {s.unit} × {s.reps}
+                      <span style={{ fontSize: "14px", color: "var(--accent)" }}>
+                        {s.weight}{s.unit} × {s.reps}
                       </span>
                       <button
                         onClick={() => removeSet(s.id)}
@@ -486,6 +430,8 @@ export default function WorkoutLogger({
                           color: "var(--text-muted)",
                           cursor: "pointer",
                           fontSize: "16px",
+                          lineHeight: 1,
+                          padding: "2px 4px",
                         }}
                       >
                         ×
@@ -497,12 +443,13 @@ export default function WorkoutLogger({
             )}
           </>
         )}
+
         <button
           className="btn-ghost"
           onClick={onFinish}
           style={{ marginTop: "auto" }}
         >
-          FINISH SESSION
+          Finish Session
         </button>
       </div>
     </div>

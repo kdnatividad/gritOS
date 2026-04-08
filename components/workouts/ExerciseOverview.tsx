@@ -55,7 +55,11 @@ function fmtNum(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 }
 
-export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: Props) {
+export default function ExerciseOverview({
+  exerciseId,
+  exerciseName,
+  onClose,
+}: Props) {
   const [tab, setTab] = useState<Tab>("weight");
   const [sessions, setSessions] = useState<SessionPoint[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -83,12 +87,10 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
   }));
 
   const unit = stats?.unit ?? "kg";
-  const chartUnit =
-    tab === "volume" ? unit : tab === "est1rm" ? unit : unit;
 
-  // Find peak for reference dot
   const peakIdx = chartData.reduce(
-    (best, d, i) => (d.value > (chartData[best]?.value ?? -Infinity) ? i : best),
+    (best, d, i) =>
+      d.value > (chartData[best]?.value ?? -Infinity) ? i : best,
     0
   );
   const peak = chartData[peakIdx];
@@ -98,7 +100,7 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.75)",
+        background: "rgba(0,0,0,0.72)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -110,12 +112,11 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
       <div
         style={{
           width: "100%",
-          maxWidth: "420px",
+          maxWidth: "440px",
           background: "var(--bg-secondary)",
-          borderRadius: "8px",
+          borderRadius: "18px",
           overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
+          border: "1px solid var(--border)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -125,60 +126,56 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "16px 20px",
+            padding: "18px 22px",
             borderBottom: "1px solid var(--border)",
           }}
         >
           <h2
             style={{
-              fontFamily: "Barlow Condensed, sans-serif",
-              fontSize: "18px",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
+              fontSize: "17px",
+              letterSpacing: "0.03em",
               color: "var(--text-primary)",
             }}
           >
-            {exerciseName.toUpperCase()}
+            {exerciseName}
           </h2>
           <button
             onClick={onClose}
             style={{
-              padding: "5px 14px",
-              fontFamily: "Barlow Condensed, sans-serif",
-              fontWeight: 600,
+              padding: "6px 16px",
               fontSize: "12px",
-              letterSpacing: "0.08em",
+              letterSpacing: "0.04em",
               border: "1px solid var(--border)",
               color: "var(--text-secondary)",
               background: "transparent",
-              borderRadius: "4px",
+              borderRadius: "8px",
               cursor: "pointer",
+              fontFamily: "Unica One, sans-serif",
+              transition: "all 0.15s",
             }}
           >
             Done
           </button>
         </div>
 
-        {/* Chart area */}
-        <div style={{ background: "var(--bg-card)", padding: "16px 20px 8px" }}>
+        {/* Chart + tabs */}
+        <div style={{ background: "var(--bg-card)", padding: "20px 22px 14px" }}>
           {/* Tabs */}
-          <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", gap: "6px", marginBottom: "20px" }}>
             {(["weight", "volume", "est1rm"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 style={{
-                  padding: "5px 14px",
-                  fontFamily: "Barlow Condensed, sans-serif",
-                  fontWeight: 600,
+                  padding: "6px 16px",
                   fontSize: "12px",
-                  letterSpacing: "0.06em",
-                  border: "1px solid",
-                  borderColor: tab === t ? "transparent" : "transparent",
+                  letterSpacing: "0.04em",
                   borderRadius: "20px",
+                  border: "none",
                   cursor: "pointer",
                   background: tab === t ? "var(--accent)" : "var(--bg-hover)",
                   color: tab === t ? "#fff" : "var(--text-secondary)",
+                  fontFamily: "Unica One, sans-serif",
                   transition: "all 0.15s",
                 }}
               >
@@ -188,8 +185,17 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
           </div>
 
           {loading ? (
-            <div style={{ height: "160px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <p style={{ color: "var(--text-muted)", fontSize: "12px" }}>Loading...</p>
+            <div
+              style={{
+                height: "160px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <p style={{ color: "var(--text-muted)", fontSize: "12px" }}>
+                Loading...
+              </p>
             </div>
           ) : chartData.length < 2 ? (
             <div
@@ -202,20 +208,35 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
                 gap: "6px",
               }}
             >
-              <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>Not enough data yet</p>
-              <p style={{ color: "var(--text-muted)", fontSize: "11px" }}>Log at least 2 sessions to see progression</p>
+              <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
+                Not enough data yet
+              </p>
+              <p style={{ color: "var(--text-muted)", fontSize: "11px" }}>
+                Log at least 2 sessions to see progression
+              </p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: -22, bottom: 0 }}
+              >
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
+                  tick={{
+                    fill: "var(--text-muted)",
+                    fontSize: 10,
+                    fontFamily: "Unica One",
+                  }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
+                  tick={{
+                    fill: "var(--text-muted)",
+                    fontSize: 10,
+                    fontFamily: "Unica One",
+                  }}
                   axisLine={false}
                   tickLine={false}
                   domain={["auto", "auto"]}
@@ -224,12 +245,16 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
                   contentStyle={{
                     background: "var(--bg-secondary)",
                     border: "1px solid var(--border)",
-                    borderRadius: "4px",
-                    fontSize: "11px",
+                    borderRadius: "10px",
+                    fontSize: "12px",
+                    fontFamily: "Unica One",
                     color: "var(--text-primary)",
                   }}
                   cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
-                  formatter={(v: number) => [`${v} ${chartUnit}`, TAB_LABELS[tab]]}
+                  formatter={(v: number) => [
+                    `${v} ${unit}`,
+                    TAB_LABELS[tab],
+                  ]}
                 />
                 <Line
                   type="monotone"
@@ -247,9 +272,10 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
                     fill="var(--accent)"
                     stroke="none"
                     label={{
-                      value: `${peak.value} ${chartUnit}`,
+                      value: `${peak.value} ${unit}`,
                       position: "top",
                       fontSize: 10,
+                      fontFamily: "Unica One",
                       fill: "var(--accent)",
                     }}
                   />
@@ -303,7 +329,7 @@ export default function ExerciseOverview({ exerciseId, exerciseName, onClose }: 
           </div>
         ) : (
           !loading && (
-            <div style={{ padding: "24px", textAlign: "center" }}>
+            <div style={{ padding: "28px", textAlign: "center" }}>
               <p style={{ color: "var(--text-muted)", fontSize: "12px" }}>
                 No data yet — log this exercise in a session to see stats.
               </p>
@@ -325,27 +351,19 @@ function StatCell({
   sub: string;
 }) {
   return (
-    <div
-      style={{
-        padding: "16px 18px",
-        background: "var(--bg-card)",
-      }}
-    >
+    <div style={{ padding: "18px 20px", background: "var(--bg-card)" }}>
       <p
         style={{
           fontSize: "9px",
           letterSpacing: "0.12em",
           color: "var(--text-muted)",
-          fontFamily: "Barlow Condensed, sans-serif",
-          marginBottom: "6px",
+          marginBottom: "7px",
         }}
       >
         {label}
       </p>
       <p
         style={{
-          fontFamily: "Barlow Condensed, sans-serif",
-          fontWeight: 700,
           fontSize: "22px",
           color: "var(--text-primary)",
           lineHeight: 1,
@@ -353,7 +371,7 @@ function StatCell({
       >
         {value}
       </p>
-      <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>
+      <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "5px" }}>
         {sub}
       </p>
     </div>
