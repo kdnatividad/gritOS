@@ -136,10 +136,10 @@ export default function Dashboard() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: "26px", color: "var(--text-primary)", letterSpacing: "0.03em" }}>
+          <h1 style={{ color: "var(--text-primary)" }}>
             Dashboard
           </h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: "4px" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "16px", marginTop: "4px" }}>
             {today}
           </p>
         </div>
@@ -164,8 +164,8 @@ export default function Dashboard() {
 
           {/* Metrics — rings */}
           <div className="card" style={{ padding: "26px 28px" }}>
-            <p style={{ fontSize: "11px", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: "24px" }}>
-              METRICS
+            <p style={{ fontSize: "12px", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: "24px", textTransform: "uppercase" }}>
+              Metrics
             </p>
             <div
               style={{
@@ -218,8 +218,8 @@ export default function Dashboard() {
                 marginBottom: "24px",
               }}
             >
-              <p style={{ fontSize: "11px", letterSpacing: "0.1em", color: "var(--text-muted)" }}>
-                SETS PER DAY
+              <p style={{ fontSize: "12px", letterSpacing: "0.1em", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                Sets Per Day
               </p>
               <span
                 style={{
@@ -248,12 +248,12 @@ export default function Dashboard() {
                   </defs>
                   <XAxis
                     dataKey="day"
-                    tick={{ fill: "var(--text-muted)", fontSize: 11, fontFamily: "Unica One" }}
+                    tick={{ fill: "var(--text-muted)", fontSize: 11, fontFamily: "Inter" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fill: "var(--text-muted)", fontSize: 11, fontFamily: "Unica One" }}
+                    tick={{ fill: "var(--text-muted)", fontSize: 11, fontFamily: "Inter" }}
                     axisLine={false}
                     tickLine={false}
                     allowDecimals={false}
@@ -264,7 +264,7 @@ export default function Dashboard() {
                       border: "1px solid var(--border)",
                       borderRadius: "10px",
                       fontSize: "12px",
-                      fontFamily: "Unica One",
+                      fontFamily: "Inter",
                       color: "var(--text-primary)",
                     }}
                     cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
@@ -323,13 +323,14 @@ export default function Dashboard() {
           <div className="card" style={{ padding: "22px 24px" }}>
             <p
               style={{
-                fontSize: "11px",
+                fontSize: "12px",
                 letterSpacing: "0.1em",
                 color: "var(--text-muted)",
                 marginBottom: "18px",
+                textTransform: "uppercase",
               }}
             >
-              RECENT SESSIONS
+              Recent Sessions
             </p>
 
             {stats.recentSessions.length === 0 ? (
@@ -341,8 +342,8 @@ export default function Dashboard() {
                 }}
               >
                 <p style={{ fontSize: "28px", marginBottom: "8px" }}>◎</p>
-                <p style={{ fontSize: "12px" }}>No sessions yet</p>
-                <p style={{ fontSize: "11px", marginTop: "6px" }}>
+                <p style={{ fontSize: "16px" }}>No sessions yet</p>
+                <p style={{ fontSize: "16px", marginTop: "6px" }}>
                   <a
                     href="/workouts"
                     style={{ color: "var(--accent)", textDecoration: "none" }}
@@ -363,9 +364,9 @@ export default function Dashboard() {
                     marginBottom: "4px",
                   }}
                 >
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>SESSION</span>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>SETS</span>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>DATE</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>SESSION</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>SETS</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>DATE</span>
                 </div>
                 {stats.recentSessions.map((session, i) => (
                   <div
@@ -402,7 +403,7 @@ export default function Dashboard() {
                       />
                       <p
                         style={{
-                          fontSize: "13px",
+                          fontSize: "16px",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -413,16 +414,17 @@ export default function Dashboard() {
                     </div>
                     <p
                       style={{
-                        fontSize: "13px",
+                        fontSize: "16px",
                         color: "var(--accent)",
                         textAlign: "right",
+                        fontWeight: 600,
                       }}
                     >
                       {session.sets?.length || 0}
                     </p>
                     <p
                       style={{
-                        fontSize: "11px",
+                        fontSize: "14px",
                         color: "var(--text-muted)",
                         textAlign: "right",
                         whiteSpace: "nowrap",
@@ -443,13 +445,14 @@ export default function Dashboard() {
           <div className="card" style={{ padding: "22px 24px" }}>
             <p
               style={{
-                fontSize: "11px",
+                fontSize: "12px",
                 letterSpacing: "0.1em",
                 color: "var(--text-muted)",
                 marginBottom: "14px",
+                textTransform: "uppercase",
               }}
             >
-              QUICK ACCESS
+              Quick Access
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <ActionLink
@@ -563,15 +566,16 @@ function RingMetric({
       <div style={{ textAlign: "center" }}>
         <p
           style={{
-            fontSize: "10px",
+            fontSize: "12px",
             letterSpacing: "0.04em",
             color: "var(--text-secondary)",
             lineHeight: 1.2,
+            textTransform: "uppercase",
           }}
         >
           {label}
         </p>
-        <p style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "2px" }}>
+        <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
           {sub}
         </p>
       </div>
@@ -592,17 +596,19 @@ function SummaryCard({
     <div className="card" style={{ padding: "18px 20px" }}>
       <p
         style={{
-          fontSize: "9px",
+          fontSize: "12px",
           color: "var(--text-muted)",
           letterSpacing: "0.1em",
           marginBottom: "8px",
+          textTransform: "uppercase",
         }}
       >
-        {label.toUpperCase()}
+        {label}
       </p>
       <p
         style={{
-          fontSize: isText ? "16px" : "28px",
+          fontSize: isText ? "18px" : "32px",
+          fontWeight: 600,
           color: "var(--accent)",
           lineHeight: 1,
           overflow: "hidden",
@@ -657,10 +663,10 @@ function ActionLink({
           {icon}
         </span>
         <div>
-          <p style={{ fontSize: "13px", color: "var(--text-primary)" }}>
+          <p style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", textTransform: "uppercase" }}>
             {label}
           </p>
-          <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+          <p style={{ fontSize: "14px", color: "var(--text-muted)", marginTop: "2px" }}>
             {sub}
           </p>
         </div>

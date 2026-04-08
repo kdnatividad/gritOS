@@ -78,14 +78,14 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
 
   const stepBtn: React.CSSProperties = {
     padding: "9px 14px",
-    fontSize: "14px",
+    fontSize: "16px",
     background: "var(--bg-hover)",
     border: "1px solid var(--border)",
     color: "var(--text-primary)",
     borderRadius: "8px",
     cursor: "pointer",
-    minWidth: "48px",
-    fontFamily: "Unica One, sans-serif",
+    minWidth: "52px",
+    fontFamily: "Inter, sans-serif",
     transition: "border-color 0.15s",
   };
 
@@ -95,8 +95,9 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
     border: "1px solid var(--border)",
     borderRadius: "8px",
     color: "var(--text-primary)",
-    fontFamily: "Unica One, sans-serif",
-    fontSize: "18px",
+    fontFamily: "Inter, sans-serif",
+    fontSize: "20px",
+    fontWeight: 600,
     textAlign: "center",
     outline: "none",
     width: "80px",
@@ -106,9 +107,10 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "270px 1fr",
+        gridTemplateColumns: "280px 1fr",
         gap: "16px",
-        height: "600px",
+        flex: 1,
+        minHeight: 0,
       }}
     >
       {/* Exercise Selector */}
@@ -124,13 +126,13 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
             onChange={(e) => setSearch(e.target.value)}
             style={{
               width: "100%",
-              padding: "9px 13px",
+              padding: "10px 13px",
               background: "var(--bg-hover)",
               border: "1px solid var(--border)",
               borderRadius: "8px",
               color: "var(--text-primary)",
-              fontFamily: "Unica One, sans-serif",
-              fontSize: "13px",
+              fontFamily: "Inter, sans-serif",
+              fontSize: "16px",
               outline: "none",
             }}
           />
@@ -149,7 +151,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                   cursor: "pointer",
                   background: isSelected ? "var(--accent-glow)" : "transparent",
                   border: isSelected
-                    ? "1px solid rgba(224,90,27,0.3)"
+                    ? "1px solid rgba(216,31,53,0.3)"
                     : "1px solid transparent",
                   marginBottom: "3px",
                   display: "flex",
@@ -161,8 +163,10 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                 <div>
                   <p
                     style={{
-                      fontSize: "13px",
-                      letterSpacing: "0.02em",
+                      fontSize: "16px",
+                      fontWeight: 600,
+                      letterSpacing: "0.01em",
+                      textTransform: "uppercase",
                       color: isSelected ? "var(--accent)" : "var(--text-primary)",
                     }}
                   >
@@ -170,12 +174,14 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                   </p>
                   <p
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       color: CATEGORY_COLORS[ex.category] || "var(--text-muted)",
-                      marginTop: "1px",
+                      marginTop: "2px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
                     }}
                   >
-                    {ex.category.toUpperCase()}
+                    {ex.category}
                   </p>
                 </div>
                 {exSets > 0 && (
@@ -228,25 +234,25 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
               }}
             >
               <div>
-                <h2 style={{ fontSize: "20px", color: "var(--accent)" }}>
+                <h2 style={{ color: "var(--accent)" }}>
                   {selectedExercise.name}
                 </h2>
-                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "3px" }}>
+                <p style={{ fontSize: "16px", color: "var(--text-muted)", marginTop: "3px" }}>
                   {exerciseSets.length} sets logged this session
                 </p>
               </div>
               <button
                 onClick={toggleUnit}
                 style={{
-                  padding: "7px 16px",
-                  fontSize: "13px",
+                  padding: "9px 18px",
+                  fontSize: "16px",
                   letterSpacing: "0.06em",
-                  border: "1px solid rgba(224,90,27,0.4)",
+                  border: "1px solid rgba(216,31,53,0.4)",
                   color: "var(--accent)",
                   background: "var(--accent-glow)",
                   borderRadius: "8px",
                   cursor: "pointer",
-                  fontFamily: "Unica One, sans-serif",
+                  fontFamily: "Inter, sans-serif",
                 }}
               >
                 {unit.toUpperCase()}
@@ -267,7 +273,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                 <div>
                   <label
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       color: "var(--text-muted)",
                       letterSpacing: "0.1em",
                       display: "block",
@@ -302,7 +308,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                 <div>
                   <label
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       color: "var(--text-muted)",
                       letterSpacing: "0.1em",
                       display: "block",
@@ -340,7 +346,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                   marginBottom: "16px",
                 }}
               >
-                <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
                   INCREMENT:
                 </span>
                 {[1, 5].map((val) => (
@@ -348,15 +354,15 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                     key={val}
                     onClick={() => setIncrement(val as 1 | 5)}
                     style={{
-                      padding: "5px 14px",
-                      fontSize: "12px",
+                      padding: "6px 16px",
+                      fontSize: "14px",
                       border: "1px solid",
                       borderColor: increment === val ? "var(--accent)" : "var(--border)",
                       color: increment === val ? "var(--accent)" : "var(--text-secondary)",
                       background: increment === val ? "var(--accent-glow)" : "transparent",
                       borderRadius: "6px",
                       cursor: "pointer",
-                      fontFamily: "Unica One, sans-serif",
+                      fontFamily: "Inter, sans-serif",
                     }}
                   >
                     {val}
@@ -373,7 +379,8 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                 style={{
                   ...numInput,
                   width: "100%",
-                  fontSize: "14px",
+                  fontSize: "16px",
+                  fontWeight: 400,
                   marginBottom: "16px",
                   textAlign: "left",
                   padding: "10px 14px",
@@ -384,7 +391,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                 className="btn-primary"
                 onClick={handleLogSet}
                 disabled={saving}
-                style={{ width: "100%", padding: "13px", fontSize: "15px" }}
+                style={{ width: "100%", padding: "13px", fontSize: "16px" }}
               >
                 {saving ? "Saving..." : `Log Set ${exerciseSets.length + 1}`}
               </button>
@@ -393,15 +400,8 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
             {/* Logged sets */}
             {exerciseSets.length > 0 && (
               <div className="card" style={{ padding: "18px 22px" }}>
-                <h3
-                  style={{
-                    fontSize: "11px",
-                    color: "var(--text-muted)",
-                    letterSpacing: "0.1em",
-                    marginBottom: "14px",
-                  }}
-                >
-                  LOGGED SETS
+                <h3 style={{ marginBottom: "14px" }}>
+                  Logged Sets
                 </h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {exerciseSets.map((s) => (
@@ -416,10 +416,10 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                         borderRadius: "8px",
                       }}
                     >
-                      <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                      <span style={{ fontSize: "14px", color: "var(--text-muted)" }}>
                         Set {s.setNumber}
                       </span>
-                      <span style={{ fontSize: "14px", color: "var(--accent)" }}>
+                      <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--accent)" }}>
                         {s.weight}{s.unit} × {s.reps}
                       </span>
                       <button

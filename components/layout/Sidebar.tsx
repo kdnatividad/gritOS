@@ -89,6 +89,7 @@ export default function Sidebar() {
         />
         <div>
           <div
+            className="brand-font"
             style={{
               fontSize: "20px",
               color: "var(--text-primary)",
@@ -129,8 +130,8 @@ export default function Sidebar() {
                 background: active ? "var(--accent-glow)" : "transparent",
                 border: active ? "1px solid rgba(216,31,53,0.2)" : "1px solid transparent",
                 textDecoration: "none",
-                fontSize: "14px",
-                letterSpacing: "0.02em",
+                fontSize: "16px",
+                letterSpacing: "0.01em",
                 transition: "all 0.15s",
               }}
             >
@@ -178,7 +179,7 @@ export default function Sidebar() {
           G
         </div>
         <div>
-          <div style={{ fontSize: "13px", color: "var(--text-primary)" }}>
+          <div style={{ fontSize: "16px", color: "var(--text-primary)" }}>
             Athlete
           </div>
           <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "1px" }}>

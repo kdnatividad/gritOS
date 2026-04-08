@@ -27,8 +27,8 @@ const INPUT: React.CSSProperties = {
   border: "1px solid var(--border)",
   borderRadius: "8px",
   color: "var(--text-primary)",
-  fontFamily: "Unica One, sans-serif",
-  fontSize: "14px",
+  fontFamily: "Inter, sans-serif",
+  fontSize: "16px",
   outline: "none",
 };
 
@@ -93,7 +93,7 @@ export default function WorkoutsPage() {
 
   if (view === "logger" && sessionId) {
     return (
-      <div style={{ maxWidth: "1000px" }}>
+      <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <div
           style={{
             display: "flex",
@@ -103,18 +103,18 @@ export default function WorkoutsPage() {
           }}
         >
           <div>
-            <h1 style={{ fontSize: "24px" }}>Active Session</h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "12px", marginTop: "4px" }}>
+            <h1>Active Session</h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: "16px", marginTop: "4px" }}>
               Select an exercise and log your sets
             </p>
           </div>
           <div
             style={{
-              padding: "6px 16px",
+              padding: "8px 18px",
               background: "var(--accent-glow)",
-              border: "1px solid rgba(224,90,27,0.35)",
+              border: "1px solid rgba(216,31,53,0.35)",
               borderRadius: "20px",
-              fontSize: "12px",
+              fontSize: "14px",
               color: "var(--accent)",
               letterSpacing: "0.06em",
             }}
@@ -132,7 +132,7 @@ export default function WorkoutsPage() {
   }
 
   return (
-    <div style={{ maxWidth: "900px" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div
         style={{
@@ -143,8 +143,8 @@ export default function WorkoutsPage() {
         }}
       >
         <div>
-          <h1 style={{ fontSize: "24px" }}>Workouts</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "12px", marginTop: "4px" }}>
+          <h1>Workouts</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "16px", marginTop: "4px" }}>
             Manage exercises and start sessions
           </p>
         </div>
@@ -177,14 +177,14 @@ export default function WorkoutsPage() {
             style={{ padding: "32px", width: "420px" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ fontSize: "20px", marginBottom: "28px" }}>
+            <h2 style={{ marginBottom: "28px" }}>
               New Exercise
             </h2>
 
             <div style={{ marginBottom: "20px" }}>
               <label
                 style={{
-                  fontSize: "10px",
+                  fontSize: "12px",
                   color: "var(--text-muted)",
                   letterSpacing: "0.1em",
                   display: "block",
@@ -207,7 +207,7 @@ export default function WorkoutsPage() {
             <div style={{ marginBottom: "28px" }}>
               <label
                 style={{
-                  fontSize: "10px",
+                  fontSize: "12px",
                   color: "var(--text-muted)",
                   letterSpacing: "0.1em",
                   display: "block",
@@ -222,8 +222,8 @@ export default function WorkoutsPage() {
                     key={cat}
                     onClick={() => setNewCategory(cat)}
                     style={{
-                      padding: "7px 16px",
-                      fontSize: "12px",
+                      padding: "8px 18px",
+                      fontSize: "14px",
                       letterSpacing: "0.04em",
                       border: "1px solid",
                       borderColor:
@@ -241,7 +241,8 @@ export default function WorkoutsPage() {
                       borderRadius: "8px",
                       cursor: "pointer",
                       transition: "all 0.15s",
-                      fontFamily: "Unica One, sans-serif",
+                      fontFamily: "Inter, sans-serif",
+                      textTransform: "uppercase",
                     }}
                   >
                     {cat}
@@ -273,8 +274,8 @@ export default function WorkoutsPage() {
             key={cat}
             onClick={() => setFilter(cat)}
             style={{
-              padding: "7px 18px",
-              fontSize: "12px",
+              padding: "8px 18px",
+              fontSize: "14px",
               letterSpacing: "0.04em",
               border: "1px solid",
               borderColor: filter === cat ? "var(--accent)" : "var(--border)",
@@ -285,7 +286,8 @@ export default function WorkoutsPage() {
               borderRadius: "8px",
               cursor: "pointer",
               transition: "all 0.15s",
-              fontFamily: "Unica One, sans-serif",
+              fontFamily: "Inter, sans-serif",
+              textTransform: "uppercase",
             }}
           >
             {cat}
@@ -327,15 +329,15 @@ export default function WorkoutsPage() {
               }
             >
               <div>
-                <p style={{ fontSize: "15px", letterSpacing: "0.02em" }}>
+                <p style={{ fontSize: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
                   {exercise.name}
                 </p>
                 {exercise.isDefault && (
                   <p
                     style={{
-                      fontSize: "10px",
+                      fontSize: "12px",
                       color: "var(--text-muted)",
-                      marginTop: "2px",
+                      marginTop: "3px",
                       letterSpacing: "0.08em",
                     }}
                   >
@@ -345,16 +347,17 @@ export default function WorkoutsPage() {
               </div>
               <span
                 style={{
-                  fontSize: "10px",
+                  fontSize: "11px",
                   letterSpacing: "0.1em",
                   color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
                   border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
-                  padding: "3px 10px",
+                  padding: "4px 12px",
                   borderRadius: "6px",
                   background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
+                  textTransform: "uppercase",
                 }}
               >
-                {exercise.category.toUpperCase()}
+                {exercise.category}
               </span>
             </div>
           ))}
