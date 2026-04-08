@@ -251,8 +251,8 @@ export default function ExerciseOverview({
                     color: "var(--text-primary)",
                   }}
                   cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
-                  formatter={(v: number) => [
-                    `${v} ${unit}`,
+                  formatter={(v) => [
+                    `${v ?? 0} ${unit}`,
                     TAB_LABELS[tab],
                   ]}
                 />

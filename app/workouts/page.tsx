@@ -42,6 +42,9 @@ export default function WorkoutsPage() {
   const [view, setView] = useState<"list" | "logger">("list");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [overview, setOverview] = useState<Exercise | null>(null);
+  const [renameTarget, setRenameTarget] = useState<Exercise | null>(null);
+  const [renameName, setRenameName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Exercise | null>(null);
   const { startSession, endSession } = useWorkoutStore();
 
   useEffect(() => {
@@ -83,6 +86,28 @@ export default function WorkoutsPage() {
     setNewName("");
     setNewCategory("push");
     setShowAdd(false);
+  };
+
+  const handleRename = async () => {
+    if (!renameTarget || !renameName.trim()) return;
+    const res = await fetch(`/api/exercises/${renameTarget.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: renameName.trim() }),
+    });
+    const updated = await res.json();
+    setExercises((prev) =>
+      prev.map((e) => (e.id === updated.id ? updated : e))
+    );
+    setRenameTarget(null);
+    setRenameName("");
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    await fetch(`/api/exercises/${deleteTarget.id}`, { method: "DELETE" });
+    setExercises((prev) => prev.filter((e) => e.id !== deleteTarget.id));
+    setDeleteTarget(null);
   };
 
   const categories = ["all", "push", "pull", "legs", "core", "cardio"];
@@ -345,20 +370,61 @@ export default function WorkoutsPage() {
                   </p>
                 )}
               </div>
-              <span
-                style={{
-                  fontSize: "11px",
-                  letterSpacing: "0.1em",
-                  color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
-                  border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
-                  padding: "4px 12px",
-                  borderRadius: "6px",
-                  background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
-                  textTransform: "uppercase",
-                }}
-              >
-                {exercise.category}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    letterSpacing: "0.1em",
+                    color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
+                    border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
+                    padding: "4px 12px",
+                    borderRadius: "6px",
+                    background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {exercise.category}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRenameTarget(exercise);
+                    setRenameName(exercise.name);
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
+                    padding: "4px 6px",
+                    fontSize: "14px",
+                    borderRadius: "4px",
+                    lineHeight: 1,
+                  }}
+                  title="Rename"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget(exercise);
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
+                    padding: "4px 6px",
+                    fontSize: "14px",
+                    borderRadius: "4px",
+                    lineHeight: 1,
+                  }}
+                  title="Delete"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -370,6 +436,94 @@ export default function WorkoutsPage() {
           exerciseName={overview.name}
           onClose={() => setOverview(null)}
         />
+      )}
+
+      {/* Rename Modal */}
+      {renameTarget && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+          }}
+          onClick={() => setRenameTarget(null)}
+        >
+          <div
+            className="card"
+            style={{ padding: "32px", width: "420px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginBottom: "24px" }}>Rename Exercise</h2>
+            <input
+              type="text"
+              value={renameName}
+              onChange={(e) => setRenameName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleRename()}
+              autoFocus
+              style={{ ...INPUT, marginBottom: "20px" }}
+            />
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button className="btn-primary" onClick={handleRename} style={{ flex: 1 }}>
+                Save
+              </button>
+              <button className="btn-ghost" onClick={() => setRenameTarget(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+          }}
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="card"
+            style={{ padding: "32px", width: "420px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginBottom: "12px" }}>Delete Exercise</h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "28px" }}>
+              Delete <strong style={{ color: "var(--text-primary)" }}>{deleteTarget.name}</strong>? This cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button
+                onClick={handleDelete}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  background: "rgba(216,31,53,0.15)",
+                  border: "1px solid rgba(216,31,53,0.4)",
+                  borderRadius: "8px",
+                  color: "var(--accent)",
+                  cursor: "pointer",
+                  fontFamily: "Inter, sans-serif",
+                  fontSize: "14px",
+                }}
+              >
+                Delete
+              </button>
+              <button className="btn-ghost" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

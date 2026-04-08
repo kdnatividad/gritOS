@@ -268,7 +268,7 @@ export default function Dashboard() {
                       color: "var(--text-primary)",
                     }}
                     cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
-                    formatter={(v: number) => [v, "sets"]}
+                    formatter={(v) => [v ?? 0, "sets"]}
                   />
                   <Area
                     type="monotone"
