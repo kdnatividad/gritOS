@@ -1,6 +1,7 @@
 "use client";
 
 import WorkoutLogger from "@/components/workouts/WorkoutLogger";
+import ExerciseOverview from "@/components/workouts/ExerciseOverview";
 import { useWorkoutStore } from "@/store/useWorkoutStore";
 import { useEffect, useState } from "react";
 
@@ -20,6 +21,7 @@ export default function WorkoutsPage() {
   const [filter, setFilter] = useState("all");
   const [view, setView] = useState<"list" | "logger">("list");
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [overview, setOverview] = useState<Exercise | null>(null);
   const { startSession, endSession } = useWorkoutStore();
 
   useEffect(() => {
@@ -296,12 +298,14 @@ export default function WorkoutsPage() {
             <div
               key={exercise.id}
               className="card"
+              onClick={() => setOverview(exercise)}
               style={{
                 padding: "16px 20px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 transition: "border-color 0.15s",
+                cursor: "pointer",
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.borderColor = "var(--accent)")
@@ -353,6 +357,14 @@ export default function WorkoutsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {overview && (
+        <ExerciseOverview
+          exerciseId={overview.id}
+          exerciseName={overview.name}
+          onClose={() => setOverview(null)}
+        />
       )}
     </div>
   );
