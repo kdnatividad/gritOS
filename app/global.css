@@ -8,9 +8,9 @@
   --bg-card: #1c1c1c;
   --bg-hover: #242424;
   --border: #2c2c2c;
-  --accent: #e05a1b;
-  --accent-dim: #c44d15;
-  --accent-glow: rgba(224, 90, 27, 0.12);
+  --accent: #D81F35;
+  --accent-dim: #b81a2c;
+  --accent-glow: rgba(216, 31, 53, 0.12);
   --text-primary: #f2f2f2;
   --text-secondary: #8a8a8a;
   --text-muted: #555555;
@@ -28,12 +28,37 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Unica One', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
 }
 
-h1, h2, h3, h4 {
+h1 {
   font-family: 'Unica One', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+h2 {
+  font-family: 'Unica One', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+h3 {
+  font-family: 'Unica One', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+
+h4 {
+  font-family: 'Unica One', sans-serif;
+  font-size: 17px;
   letter-spacing: 0.02em;
 }
 
@@ -73,9 +98,9 @@ input, textarea, button, select {
   letter-spacing: 0.04em;
   border: none;
   cursor: pointer;
-  padding: 10px 22px;
+  padding: 11px 24px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 16px;
   transition: background 0.15s;
 }
 .btn-primary:hover { background: var(--accent-dim); }
@@ -87,9 +112,9 @@ input, textarea, button, select {
   letter-spacing: 0.04em;
   border: 1px solid var(--border);
   cursor: pointer;
-  padding: 10px 22px;
+  padding: 11px 24px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 16px;
   transition: all 0.15s;
 }
 .btn-ghost:hover {
