@@ -17,7 +17,7 @@ export default function RootLayout({
       <body>
         <div className="flex h-screen overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto" style={{ padding: "36px 40px" }}>{children}</main>
+          <main className="flex-1 overflow-y-auto" style={{ padding: "36px 40px", display: "flex", flexDirection: "column" }}>{children}</main>
         </div>
       </body>
     </html>

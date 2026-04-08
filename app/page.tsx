@@ -125,7 +125,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div style={{ maxWidth: "1080px" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div
         style={{
@@ -155,6 +155,8 @@ export default function Dashboard() {
           gridTemplateColumns: "1fr 340px",
           gap: "18px",
           alignItems: "start",
+          flex: 1,
+          minHeight: 0,
         }}
       >
         {/* ── LEFT COLUMN ── */}
