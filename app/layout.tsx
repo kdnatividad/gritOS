@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./global.css";
 import Sidebar from "@/components/layout/Sidebar";
+import BottomNav from "@/components/layout/BottomNav";
 
 export const metadata: Metadata = {
   title: "gritOS — Fitness Tracker",
@@ -16,9 +17,17 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto" style={{ padding: "36px 40px", display: "flex", flexDirection: "column" }}>{children}</main>
+          <div className="desktop-sidebar">
+            <Sidebar />
+          </div>
+          <main
+            className="flex-1 overflow-y-auto layout-main"
+            style={{ padding: "36px 40px", display: "flex", flexDirection: "column" }}
+          >
+            {children}
+          </main>
         </div>
+        <BottomNav />
       </body>
     </html>
   );

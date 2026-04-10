@@ -150,6 +150,7 @@ export default function Dashboard() {
 
       {/* Two-column layout */}
       <div
+        className="dashboard-cols"
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 340px",
@@ -168,6 +169,7 @@ export default function Dashboard() {
               Metrics
             </p>
             <div
+              className="metrics-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(5, 1fr)",
@@ -299,6 +301,7 @@ export default function Dashboard() {
 
           {/* Summary stats row */}
           <div
+            className="summary-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",

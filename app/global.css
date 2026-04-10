@@ -130,3 +130,54 @@ input, textarea, button, select {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* ── Bottom nav (mobile only) ────────────────────────────────────────────── */
+.bottom-nav {
+  display: none;
+}
+
+/* ── Responsive layout ───────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  /* Hide desktop sidebar, show bottom nav */
+  .desktop-sidebar {
+    display: none !important;
+  }
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Main content: full width, padding for bottom nav */
+  .layout-main {
+    padding: 20px 16px 88px !important;
+  }
+
+  /* Dashboard: stack left + right columns */
+  .dashboard-cols {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Metrics: 5-ring → 2-col grid (wrap naturally) */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  /* Centre the 5th ring when it wraps alone */
+  .metrics-grid > *:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Summary cards: 4-col → 2-col */
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* h1 sizing */
+  h1 { font-size: 22px !important; }
+}
