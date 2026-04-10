@@ -325,17 +325,8 @@ export default function WorkoutsPage() {
       {/* ── EXERCISES TAB ── */}
       {tab === "exercises" && (
         <>
-          {/* Category Filter — scrollable on mobile */}
-          <div
-            style={{
-              display: "flex",
-              gap: "6px",
-              marginBottom: "18px",
-              overflowX: "auto",
-              WebkitOverflowScrolling: "touch",
-              paddingBottom: "2px",
-            }}
-          >
+          {/* Category Filter — horizontally scrollable */}
+          <div className="filter-scroll" style={{ marginBottom: "18px", paddingBottom: "2px" }}>
             {categories.map((cat) => (
               <button
                 key={cat}
