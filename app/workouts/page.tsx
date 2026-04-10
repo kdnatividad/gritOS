@@ -205,7 +205,7 @@ export default function WorkoutsPage() {
 
   if (view === "logger" && sessionId) {
     return (
-      <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <div style={{ height: isMobile ? "auto" : "100%", display: "flex", flexDirection: "column" }}>
         <div
           style={{
             display: "flex",
