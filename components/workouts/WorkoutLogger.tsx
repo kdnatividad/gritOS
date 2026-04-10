@@ -165,6 +165,19 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
     transition: "border-color 0.15s",
   };
 
+  // Mobile step button — no minWidth so it can't clip the card edge
+  const mStepBtn: React.CSSProperties = {
+    padding: "9px 12px",
+    fontSize: "16px",
+    background: "var(--bg-hover)",
+    border: "1px solid var(--border)",
+    color: "var(--text-primary)",
+    borderRadius: "8px",
+    cursor: "pointer",
+    flexShrink: 0,
+    fontFamily: "Inter, sans-serif",
+  };
+
   const numInput: React.CSSProperties = {
     padding: "9px 12px",
     background: "var(--bg-hover)",
@@ -381,61 +394,38 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
             <div className="card" style={{ padding: "22px" }}>
 
               {isMobile ? (
-                /* ── Mobile: stacked rows ─────────────────────────────── */
+                /* ── Mobile: stacked, order depends on mode ───────────── */
                 <>
-                  {/* Row 1 — Weight + Increment inline */}
-                  <div style={{ marginBottom: "14px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
-                        WEIGHT ({unit})
-                      </span>
-                      {!platesMode && (
+                  {!platesMode ? (
+                    /* Normal mode: Weight+Increment → Reps */
+                    <>
+                      {/* Weight label + PLATES toggle */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                        <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>WEIGHT ({unit})</span>
                         <button
                           onClick={enterPlatesMode}
-                          style={{
-                            background: "none",
-                            border: "1px solid var(--border)",
-                            borderRadius: "4px",
-                            color: "var(--text-muted)",
-                            cursor: "pointer",
-                            fontSize: "11px",
-                            padding: "2px 8px",
-                            fontFamily: "Inter, sans-serif",
-                            letterSpacing: "0.04em",
-                          }}
+                          style={{ background: "none", border: "1px solid var(--border)", borderRadius: "4px", color: "var(--text-muted)", cursor: "pointer", fontSize: "11px", padding: "2px 8px", fontFamily: "Inter, sans-serif", letterSpacing: "0.04em" }}
                         >
                           PLATES
                         </button>
-                      )}
-                    </div>
-
-                    {platesMode ? (
-                      /* Compact plates total */
-                      <div style={{ textAlign: "center", padding: "9px", background: "var(--bg-hover)", borderRadius: "8px", border: "1px solid rgba(216,31,53,0.3)" }}>
-                        <span style={{ fontSize: "26px", fontWeight: 700, color: "var(--accent)" }}>{platesWeight}</span>
-                        <span style={{ fontSize: "12px", color: "var(--text-muted)", marginLeft: "5px" }}>{unit}</span>
-                        <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px", letterSpacing: "0.05em" }}>
-                          BAR {barWeight} + {platesWeight - barWeight}
-                        </p>
                       </div>
-                    ) : (
-                      /* Weight controls + increment in one row */
-                      <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
-                        <button onClick={() => setWeight((w) => Math.max(0, w - increment))} style={stepBtn}>−{increment}</button>
+                      {/* Weight controls + increment in one row */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px" }}>
+                        <button onClick={() => setWeight((w) => Math.max(0, w - increment))} style={mStepBtn}>−{increment}</button>
                         <input
                           type="number"
                           value={weight}
                           onChange={(e) => setWeight(Number(e.target.value))}
-                          style={{ ...numInput, flex: 1, width: undefined }}
+                          style={{ ...numInput, flex: 1, width: 0, minWidth: 0 }}
                         />
-                        <button onClick={() => setWeight((w) => w + increment)} style={stepBtn}>+{increment}</button>
+                        <button onClick={() => setWeight((w) => w + increment)} style={mStepBtn}>+{increment}</button>
                         <div style={{ width: "1px", height: "28px", background: "var(--border)", flexShrink: 0 }} />
                         {[1, 5].map((val) => (
                           <button
                             key={val}
                             onClick={() => setIncrement(val as 1 | 5)}
                             style={{
-                              padding: "8px 12px",
+                              padding: "8px 10px",
                               fontSize: "14px",
                               border: "1px solid",
                               borderColor: increment === val ? "var(--accent)" : "var(--border)",
@@ -451,109 +441,157 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                           </button>
                         ))}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Row 2 — Reps */}
-                  <div style={{ marginBottom: "14px" }}>
-                    <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "8px" }}>
-                      REPS
-                    </span>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <button onClick={() => setReps((r) => Math.max(1, r - 1))} style={stepBtn}>−1</button>
-                      <input
-                        type="number"
-                        value={reps}
-                        onChange={(e) => setReps(Number(e.target.value))}
-                        style={{ ...numInput, flex: 1, width: undefined }}
-                      />
-                      <button onClick={() => setReps((r) => r + 1)} style={stepBtn}>+1</button>
-                    </div>
-                  </div>
+                      {/* Reps */}
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "8px" }}>REPS</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px" }}>
+                        <button onClick={() => setReps((r) => Math.max(1, r - 1))} style={mStepBtn}>−1</button>
+                        <input
+                          type="number"
+                          value={reps}
+                          onChange={(e) => setReps(Number(e.target.value))}
+                          style={{ ...numInput, flex: 1, width: 0, minWidth: 0 }}
+                        />
+                        <button onClick={() => setReps((r) => r + 1)} style={mStepBtn}>+1</button>
+                      </div>
+                    </>
+                  ) : (
+                    /* Plates mode: Weight display → Plates grid → Reps */
+                    <>
+                      {/* Weight display */}
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "8px" }}>WEIGHT ({unit})</span>
+                      <div style={{ textAlign: "center", padding: "9px", background: "var(--bg-hover)", borderRadius: "8px", border: "1px solid rgba(216,31,53,0.3)", marginBottom: "14px" }}>
+                        <span style={{ fontSize: "26px", fontWeight: 700, color: "var(--accent)" }}>{platesWeight}</span>
+                        <span style={{ fontSize: "12px", color: "var(--text-muted)", marginLeft: "5px" }}>{unit}</span>
+                        <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px", letterSpacing: "0.05em" }}>
+                          BAR {barWeight} + {platesWeight - barWeight}
+                        </p>
+                      </div>
+                      {/* Plates grid */}
+                      <div style={{ display: "grid", gridTemplateColumns: `repeat(${plates.length}, 1fr)`, gap: "6px", marginBottom: "10px" }}>
+                        {plates.map((plate) => {
+                          const count = plateCounts[plate] || 0;
+                          return (
+                            <div key={plate} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              <button onClick={() => addPlate(plate)} style={{ width: "100%", padding: "6px 0", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text-primary)", cursor: "pointer", fontSize: "18px", lineHeight: 1 }}>+</button>
+                              <div style={{ position: "relative", width: "100%" }}>
+                                <div style={{ width: "100%", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: plate >= 10 ? "14px" : "13px", fontWeight: 700, color: count > 0 ? "var(--accent)" : "var(--text-primary)", background: count > 0 ? "var(--accent-glow)" : "var(--bg-hover)", borderRadius: "8px", border: count > 0 ? "1px solid rgba(216,31,53,0.4)" : "1px solid var(--border)", transition: "all 0.1s" }}>
+                                  {plate}
+                                </div>
+                                {count > 0 && (
+                                  <div style={{ position: "absolute", top: "-6px", right: "-6px", background: "var(--accent)", borderRadius: "50%", width: "17px", height: "17px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "#fff" }}>
+                                    {count}
+                                  </div>
+                                )}
+                              </div>
+                              <button onClick={() => removePlate(plate)} disabled={count === 0} style={{ width: "100%", padding: "6px 0", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "6px", color: count === 0 ? "var(--text-muted)" : "var(--text-primary)", cursor: count === 0 ? "not-allowed" : "pointer", fontSize: "18px", lineHeight: 1, opacity: count === 0 ? 0.4 : 1 }}>−</button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "14px" }}>
+                        <button onClick={exitPlatesMode} style={iconBtn} title="Back to input">⌨</button>
+                        <button onClick={undoPlate} disabled={platesHistory.length === 0} style={{ ...iconBtn, opacity: platesHistory.length === 0 ? 0.35 : 1, cursor: platesHistory.length === 0 ? "not-allowed" : "pointer" }} title="Undo last plate">↩</button>
+                      </div>
+                      {/* Reps */}
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "8px" }}>REPS</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px" }}>
+                        <button onClick={() => setReps((r) => Math.max(1, r - 1))} style={mStepBtn}>−1</button>
+                        <input
+                          type="number"
+                          value={reps}
+                          onChange={(e) => setReps(Number(e.target.value))}
+                          style={{ ...numInput, flex: 1, width: 0, minWidth: 0 }}
+                        />
+                        <button onClick={() => setReps((r) => r + 1)} style={mStepBtn}>+1</button>
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 /* ── Desktop: 2-col grid ──────────────────────────────── */
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "18px" }}>
-                  {/* Weight */}
-                  <div>
-                    <label style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "10px" }}>
-                      WEIGHT ({unit})
-                      {!platesMode && (
-                        <button
-                          onClick={enterPlatesMode}
-                          style={{ marginLeft: "10px", background: "none", border: "1px solid var(--border)", borderRadius: "4px", color: "var(--text-muted)", cursor: "pointer", fontSize: "11px", padding: "1px 7px", fontFamily: "Inter, sans-serif", letterSpacing: "0.04em", verticalAlign: "middle" }}
-                        >
-                          PLATES
-                        </button>
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "18px" }}>
+                    {/* Weight */}
+                    <div>
+                      <label style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "10px" }}>
+                        WEIGHT ({unit})
+                        {!platesMode && (
+                          <button
+                            onClick={enterPlatesMode}
+                            style={{ marginLeft: "10px", background: "none", border: "1px solid var(--border)", borderRadius: "4px", color: "var(--text-muted)", cursor: "pointer", fontSize: "11px", padding: "1px 7px", fontFamily: "Inter, sans-serif", letterSpacing: "0.04em", verticalAlign: "middle" }}
+                          >
+                            PLATES
+                          </button>
+                        )}
+                      </label>
+                      {platesMode ? (
+                        <div style={{ textAlign: "center", padding: "9px 8px", background: "var(--bg-hover)", borderRadius: "8px", border: "1px solid rgba(216,31,53,0.3)" }}>
+                          <span style={{ fontSize: "26px", fontWeight: 700, color: "var(--accent)" }}>{platesWeight}</span>
+                          <span style={{ fontSize: "12px", color: "var(--text-muted)", marginLeft: "5px" }}>{unit}</span>
+                          <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px", letterSpacing: "0.05em" }}>BAR {barWeight} + {platesWeight - barWeight}</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <button onClick={() => setWeight((w) => Math.max(0, w - increment))} style={stepBtn}>−{increment}</button>
+                          <input type="number" value={weight} onChange={(e) => setWeight(Number(e.target.value))} style={numInput} />
+                          <button onClick={() => setWeight((w) => w + increment)} style={stepBtn}>+{increment}</button>
+                        </div>
                       )}
-                    </label>
-                    {platesMode ? (
-                      <div style={{ textAlign: "center", padding: "9px 8px", background: "var(--bg-hover)", borderRadius: "8px", border: "1px solid rgba(216,31,53,0.3)" }}>
-                        <span style={{ fontSize: "26px", fontWeight: 700, color: "var(--accent)" }}>{platesWeight}</span>
-                        <span style={{ fontSize: "12px", color: "var(--text-muted)", marginLeft: "5px" }}>{unit}</span>
-                        <p style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px", letterSpacing: "0.05em" }}>BAR {barWeight} + {platesWeight - barWeight}</p>
-                      </div>
-                    ) : (
+                    </div>
+                    {/* Reps */}
+                    <div>
+                      <label style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "10px" }}>REPS</label>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <button onClick={() => setWeight((w) => Math.max(0, w - increment))} style={stepBtn}>−{increment}</button>
-                        <input type="number" value={weight} onChange={(e) => setWeight(Number(e.target.value))} style={numInput} />
-                        <button onClick={() => setWeight((w) => w + increment)} style={stepBtn}>+{increment}</button>
+                        <button onClick={() => setReps((r) => Math.max(1, r - 1))} style={stepBtn}>−1</button>
+                        <input type="number" value={reps} onChange={(e) => setReps(Number(e.target.value))} style={numInput} />
+                        <button onClick={() => setReps((r) => r + 1)} style={stepBtn}>+1</button>
                       </div>
-                    )}
-                  </div>
-                  {/* Reps */}
-                  <div>
-                    <label style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em", display: "block", marginBottom: "10px" }}>REPS</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <button onClick={() => setReps((r) => Math.max(1, r - 1))} style={stepBtn}>−1</button>
-                      <input type="number" value={reps} onChange={(e) => setReps(Number(e.target.value))} style={numInput} />
-                      <button onClick={() => setReps((r) => r + 1)} style={stepBtn}>+1</button>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* ── Plates keyboard — full width, both mobile and desktop ── */}
-              {platesMode && (
-                <div style={{ marginBottom: "16px" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: `repeat(${plates.length}, 1fr)`, gap: "6px", marginBottom: "10px" }}>
-                    {plates.map((plate) => {
-                      const count = plateCounts[plate] || 0;
-                      return (
-                        <div key={plate} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-                          <button onClick={() => addPlate(plate)} style={{ width: "100%", padding: "6px 0", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text-primary)", cursor: "pointer", fontSize: "18px", lineHeight: 1 }}>+</button>
-                          <div style={{ position: "relative", width: "100%" }}>
-                            <div style={{ width: "100%", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: plate >= 10 ? "14px" : "13px", fontWeight: 700, color: count > 0 ? "var(--accent)" : "var(--text-primary)", background: count > 0 ? "var(--accent-glow)" : "var(--bg-hover)", borderRadius: "8px", border: count > 0 ? "1px solid rgba(216,31,53,0.4)" : "1px solid var(--border)", transition: "all 0.1s" }}>
-                              {plate}
-                            </div>
-                            {count > 0 && (
-                              <div style={{ position: "absolute", top: "-6px", right: "-6px", background: "var(--accent)", borderRadius: "50%", width: "17px", height: "17px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "#fff" }}>
-                                {count}
+                  {/* Plates keyboard — desktop */}
+                  {platesMode && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: `repeat(${plates.length}, 1fr)`, gap: "6px", marginBottom: "10px" }}>
+                        {plates.map((plate) => {
+                          const count = plateCounts[plate] || 0;
+                          return (
+                            <div key={plate} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+                              <button onClick={() => addPlate(plate)} style={{ width: "100%", padding: "6px 0", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "6px", color: "var(--text-primary)", cursor: "pointer", fontSize: "18px", lineHeight: 1 }}>+</button>
+                              <div style={{ position: "relative", width: "100%" }}>
+                                <div style={{ width: "100%", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: plate >= 10 ? "14px" : "13px", fontWeight: 700, color: count > 0 ? "var(--accent)" : "var(--text-primary)", background: count > 0 ? "var(--accent-glow)" : "var(--bg-hover)", borderRadius: "8px", border: count > 0 ? "1px solid rgba(216,31,53,0.4)" : "1px solid var(--border)", transition: "all 0.1s" }}>
+                                  {plate}
+                                </div>
+                                {count > 0 && (
+                                  <div style={{ position: "absolute", top: "-6px", right: "-6px", background: "var(--accent)", borderRadius: "50%", width: "17px", height: "17px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, color: "#fff" }}>
+                                    {count}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                          <button onClick={() => removePlate(plate)} disabled={count === 0} style={{ width: "100%", padding: "6px 0", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "6px", color: count === 0 ? "var(--text-muted)" : "var(--text-primary)", cursor: count === 0 ? "not-allowed" : "pointer", fontSize: "18px", lineHeight: 1, opacity: count === 0 ? 0.4 : 1 }}>−</button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <button onClick={exitPlatesMode} style={iconBtn} title="Back to input">⌨</button>
-                    <button onClick={undoPlate} disabled={platesHistory.length === 0} style={{ ...iconBtn, opacity: platesHistory.length === 0 ? 0.35 : 1, cursor: platesHistory.length === 0 ? "not-allowed" : "pointer" }} title="Undo last plate">↩</button>
-                  </div>
-                </div>
-              )}
+                              <button onClick={() => removePlate(plate)} disabled={count === 0} style={{ width: "100%", padding: "6px 0", background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "6px", color: count === 0 ? "var(--text-muted)" : "var(--text-primary)", cursor: count === 0 ? "not-allowed" : "pointer", fontSize: "18px", lineHeight: 1, opacity: count === 0 ? 0.4 : 1 }}>−</button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <button onClick={exitPlatesMode} style={iconBtn} title="Back to input">⌨</button>
+                        <button onClick={undoPlate} disabled={platesHistory.length === 0} style={{ ...iconBtn, opacity: platesHistory.length === 0 ? 0.35 : 1, cursor: platesHistory.length === 0 ? "not-allowed" : "pointer" }} title="Undo last plate">↩</button>
+                      </div>
+                    </div>
+                  )}
 
-              {/* Increment selector — desktop only, hidden in plates mode */}
-              {!isMobile && !platesMode && (
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>INCREMENT:</span>
-                  {[1, 5].map((val) => (
-                    <button key={val} onClick={() => setIncrement(val as 1 | 5)} style={{ padding: "6px 16px", fontSize: "14px", border: "1px solid", borderColor: increment === val ? "var(--accent)" : "var(--border)", color: increment === val ? "var(--accent)" : "var(--text-secondary)", background: increment === val ? "var(--accent-glow)" : "transparent", borderRadius: "6px", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
-                      {val}
-                    </button>
-                  ))}
-                </div>
+                  {/* Increment selector — desktop only, hidden in plates mode */}
+                  {!platesMode && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>INCREMENT:</span>
+                      {[1, 5].map((val) => (
+                        <button key={val} onClick={() => setIncrement(val as 1 | 5)} style={{ padding: "6px 16px", fontSize: "14px", border: "1px solid", borderColor: increment === val ? "var(--accent)" : "var(--border)", color: increment === val ? "var(--accent)" : "var(--text-secondary)", background: increment === val ? "var(--accent-glow)" : "transparent", borderRadius: "6px", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Notes */}
