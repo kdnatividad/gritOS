@@ -12,6 +12,19 @@ interface Exercise {
   isDefault: boolean;
 }
 
+interface PlanItem {
+  id: string;
+  exercise: Exercise;
+  order: number;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  type: string;
+  items: PlanItem[];
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   push: "#c8ff00",
   pull: "#00cfff",
@@ -35,35 +48,54 @@ const INPUT: React.CSSProperties = {
 export default function WorkoutsPage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"exercises" | "plans">("exercises");
+
+  // Exercise state
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState("push");
   const [filter, setFilter] = useState("all");
-  const [view, setView] = useState<"list" | "logger">("list");
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [overview, setOverview] = useState<Exercise | null>(null);
   const [renameTarget, setRenameTarget] = useState<Exercise | null>(null);
   const [renameName, setRenameName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Exercise | null>(null);
+
+  // Plans state
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [showNewPlan, setShowNewPlan] = useState(false);
+  const [newPlanName, setNewPlanName] = useState("");
+  const [planDetail, setPlanDetail] = useState<Plan | null>(null);
+  const [planSearch, setPlanSearch] = useState("");
+
+  // Session state
+  const [view, setView] = useState<"list" | "logger">("list");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [activeSessionName, setActiveSessionName] = useState<string | undefined>();
+
   const { startSession, endSession } = useWorkoutStore();
 
   useEffect(() => {
-    fetch("/api/exercises")
-      .then((r) => r.json())
-      .then((data) => {
-        setExercises(data);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch("/api/exercises").then((r) => r.json()),
+      fetch("/api/plans").then((r) => r.json()),
+    ]).then(([exData, plData]) => {
+      setExercises(exData);
+      setPlans(plData);
+      setLoading(false);
+    });
   }, []);
 
-  const handleStartSession = async () => {
+  // ── Session handlers ──────────────────────────────────────────────────────
+
+  const handleStartSession = async (plan?: Plan) => {
     const res = await fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ planId: plan?.id || null }),
     });
     const session = await res.json();
     setSessionId(session.id);
+    setActiveSessionName(plan?.name);
     startSession(session.id);
     setView("logger");
   };
@@ -71,8 +103,11 @@ export default function WorkoutsPage() {
   const handleFinish = () => {
     endSession();
     setSessionId(null);
+    setActiveSessionName(undefined);
     setView("list");
   };
+
+  // ── Exercise handlers ─────────────────────────────────────────────────────
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
@@ -96,9 +131,7 @@ export default function WorkoutsPage() {
       body: JSON.stringify({ name: renameName.trim() }),
     });
     const updated = await res.json();
-    setExercises((prev) =>
-      prev.map((e) => (e.id === updated.id ? updated : e))
-    );
+    setExercises((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
     setRenameTarget(null);
     setRenameName("");
   };
@@ -110,11 +143,63 @@ export default function WorkoutsPage() {
     setDeleteTarget(null);
   };
 
+  // ── Plan handlers ─────────────────────────────────────────────────────────
+
+  const handleCreatePlan = async () => {
+    if (!newPlanName.trim()) return;
+    const res = await fetch("/api/plans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newPlanName.trim() }),
+    });
+    const plan = await res.json();
+    setPlans((prev) => [plan, ...prev]);
+    setNewPlanName("");
+    setShowNewPlan(false);
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    await fetch(`/api/plans/${id}`, { method: "DELETE" });
+    setPlans((prev) => prev.filter((p) => p.id !== id));
+    if (planDetail?.id === id) setPlanDetail(null);
+  };
+
+  const handleAddExerciseToPlan = async (planId: string, exerciseId: string) => {
+    // Avoid duplicates
+    const plan = plans.find((p) => p.id === planId);
+    if (plan?.items.some((item) => item.exercise.id === exerciseId)) return;
+    const res = await fetch(`/api/plans/${planId}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ exerciseId }),
+    });
+    const item = await res.json();
+    const updatedPlan = { ...plan!, items: [...plan!.items, item] };
+    setPlans((prev) => prev.map((p) => (p.id === planId ? updatedPlan : p)));
+    setPlanDetail(updatedPlan);
+  };
+
+  const handleRemoveExerciseFromPlan = async (planId: string, itemId: string) => {
+    await fetch(`/api/plans/${planId}/items`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ itemId }),
+    });
+    const plan = plans.find((p) => p.id === planId)!;
+    const updatedPlan = { ...plan, items: plan.items.filter((i) => i.id !== itemId) };
+    setPlans((prev) => prev.map((p) => (p.id === planId ? updatedPlan : p)));
+    setPlanDetail(updatedPlan);
+  };
+
   const categories = ["all", "push", "pull", "legs", "core", "cardio"];
-  const filtered =
-    filter === "all"
-      ? exercises
-      : exercises.filter((e) => e.category === filter);
+  const filteredExercises =
+    filter === "all" ? exercises : exercises.filter((e) => e.category === filter);
+
+  const planDetailSearched = exercises.filter((e) =>
+    e.name.toLowerCase().includes(planSearch.toLowerCase())
+  );
+
+  // ── Logger view ───────────────────────────────────────────────────────────
 
   if (view === "logger" && sessionId) {
     return (
@@ -128,7 +213,7 @@ export default function WorkoutsPage() {
           }}
         >
           <div>
-            <h1>Active Session</h1>
+            <h1>{activeSessionName || "Active Session"}</h1>
             <p style={{ color: "var(--text-secondary)", fontSize: "16px", marginTop: "4px" }}>
               Select an exercise and log your sets
             </p>
@@ -156,6 +241,8 @@ export default function WorkoutsPage() {
     );
   }
 
+  // ── List view ─────────────────────────────────────────────────────────────
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Header */}
@@ -164,270 +251,490 @@ export default function WorkoutsPage() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          marginBottom: "32px",
+          marginBottom: "24px",
         }}
       >
         <div>
           <h1>Workouts</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "16px", marginTop: "4px" }}>
-            Manage exercises and start sessions
+            Manage exercises, plans, and start sessions
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
-          <button className="btn-ghost" onClick={() => setShowAdd(true)}>
-            + Add Exercise
-          </button>
-          <button className="btn-primary" onClick={handleStartSession}>
+          {tab === "exercises" && (
+            <button className="btn-ghost" onClick={() => setShowAdd(true)}>
+              + Add Exercise
+            </button>
+          )}
+          {tab === "plans" && (
+            <button className="btn-ghost" onClick={() => setShowNewPlan(true)}>
+              + New Plan
+            </button>
+          )}
+          <button className="btn-primary" onClick={() => handleStartSession()}>
             ▶ Start Session
           </button>
         </div>
       </div>
 
-      {/* Add Exercise Modal */}
-      {showAdd && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.75)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 50,
-          }}
-          onClick={() => setShowAdd(false)}
-        >
-          <div
-            className="card"
-            style={{ padding: "32px", width: "420px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ marginBottom: "28px" }}>
-              New Exercise
-            </h2>
-
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                style={{
-                  fontSize: "12px",
-                  color: "var(--text-muted)",
-                  letterSpacing: "0.1em",
-                  display: "block",
-                  marginBottom: "8px",
-                }}
-              >
-                EXERCISE NAME
-              </label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-                placeholder="e.g. Romanian Deadlift"
-                autoFocus
-                style={INPUT}
-              />
-            </div>
-
-            <div style={{ marginBottom: "28px" }}>
-              <label
-                style={{
-                  fontSize: "12px",
-                  color: "var(--text-muted)",
-                  letterSpacing: "0.1em",
-                  display: "block",
-                  marginBottom: "10px",
-                }}
-              >
-                CATEGORY
-              </label>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {["push", "pull", "legs", "core", "cardio"].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setNewCategory(cat)}
-                    style={{
-                      padding: "8px 18px",
-                      fontSize: "14px",
-                      letterSpacing: "0.04em",
-                      border: "1px solid",
-                      borderColor:
-                        newCategory === cat
-                          ? CATEGORY_COLORS[cat]
-                          : "var(--border)",
-                      color:
-                        newCategory === cat
-                          ? CATEGORY_COLORS[cat]
-                          : "var(--text-secondary)",
-                      background:
-                        newCategory === cat
-                          ? `${CATEGORY_COLORS[cat]}18`
-                          : "transparent",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                      fontFamily: "Inter, sans-serif",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button
-                className="btn-primary"
-                onClick={handleAdd}
-                style={{ flex: 1 }}
-              >
-                Add Exercise
-              </button>
-              <button className="btn-ghost" onClick={() => setShowAdd(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Category Filter */}
-      <div style={{ display: "flex", gap: "6px", marginBottom: "22px" }}>
-        {categories.map((cat) => (
+      {/* Tab toggle */}
+      <div style={{ display: "flex", gap: "4px", marginBottom: "22px" }}>
+        {(["exercises", "plans"] as const).map((t) => (
           <button
-            key={cat}
-            onClick={() => setFilter(cat)}
+            key={t}
+            onClick={() => setTab(t)}
             style={{
-              padding: "8px 18px",
-              fontSize: "14px",
-              letterSpacing: "0.04em",
+              padding: "8px 20px",
+              fontSize: "13px",
+              letterSpacing: "0.08em",
+              fontFamily: "Inter, sans-serif",
+              textTransform: "uppercase",
               border: "1px solid",
-              borderColor: filter === cat ? "var(--accent)" : "var(--border)",
-              color:
-                filter === cat ? "var(--accent)" : "var(--text-secondary)",
-              background:
-                filter === cat ? "var(--accent-glow)" : "transparent",
+              borderColor: tab === t ? "var(--accent)" : "var(--border)",
+              color: tab === t ? "var(--accent)" : "var(--text-secondary)",
+              background: tab === t ? "var(--accent-glow)" : "transparent",
               borderRadius: "8px",
               cursor: "pointer",
               transition: "all 0.15s",
-              fontFamily: "Inter, sans-serif",
-              textTransform: "uppercase",
             }}
           >
-            {cat}
+            {t}
           </button>
         ))}
       </div>
 
-      {/* Exercise Grid */}
-      {loading ? (
-        <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-          Loading exercises...
-        </p>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: "10px",
-          }}
-        >
-          {filtered.map((exercise) => (
+      {/* ── EXERCISES TAB ── */}
+      {tab === "exercises" && (
+        <>
+          {/* Category Filter */}
+          <div style={{ display: "flex", gap: "6px", marginBottom: "22px" }}>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFilter(cat)}
+                style={{
+                  padding: "8px 18px",
+                  fontSize: "14px",
+                  letterSpacing: "0.04em",
+                  border: "1px solid",
+                  borderColor: filter === cat ? "var(--accent)" : "var(--border)",
+                  color: filter === cat ? "var(--accent)" : "var(--text-secondary)",
+                  background: filter === cat ? "var(--accent-glow)" : "transparent",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  fontFamily: "Inter, sans-serif",
+                  textTransform: "uppercase",
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Exercise Grid */}
+          {loading ? (
+            <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>Loading exercises...</p>
+          ) : (
             <div
-              key={exercise.id}
-              className="card"
-              onClick={() => setOverview(exercise)}
               style={{
-                padding: "18px 22px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                cursor: "pointer",
-                transition: "border-color 0.15s",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "10px",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.borderColor = "var(--accent)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = "var(--border)")
-              }
             >
-              <div>
-                <p style={{ fontSize: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
-                  {exercise.name}
-                </p>
-                {exercise.isDefault && (
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--text-muted)",
-                      marginTop: "3px",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    DEFAULT
-                  </p>
-                )}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span
+              {filteredExercises.map((exercise) => (
+                <div
+                  key={exercise.id}
+                  className="card"
+                  onClick={() => setOverview(exercise)}
                   style={{
-                    fontSize: "11px",
-                    letterSpacing: "0.1em",
-                    color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
-                    border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
-                    padding: "4px 12px",
-                    borderRadius: "6px",
-                    background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
+                    padding: "18px 22px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    transition: "border-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+                >
+                  <div>
+                    <p style={{ fontSize: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                      {exercise.name}
+                    </p>
+                    {exercise.isDefault && (
+                      <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px", letterSpacing: "0.08em" }}>
+                        DEFAULT
+                      </p>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        letterSpacing: "0.1em",
+                        color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
+                        border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
+                        padding: "4px 12px",
+                        borderRadius: "6px",
+                        background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {exercise.category}
+                    </span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setRenameTarget(exercise); setRenameName(exercise.name); }}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", fontSize: "14px", borderRadius: "4px", lineHeight: 1 }}
+                      title="Rename"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(exercise); }}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", fontSize: "14px", borderRadius: "4px", lineHeight: 1 }}
+                      title="Delete"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── PLANS TAB ── */}
+      {tab === "plans" && (
+        <>
+          {loading ? (
+            <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>Loading plans...</p>
+          ) : plans.length === 0 ? (
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "12px",
+                color: "var(--text-muted)",
+                paddingTop: "60px",
+              }}
+            >
+              <p style={{ fontSize: "28px" }}>◫</p>
+              <p style={{ fontSize: "16px" }}>No plans yet</p>
+              <button className="btn-ghost" onClick={() => setShowNewPlan(true)}>
+                + Create your first plan
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "10px",
+              }}
+            >
+              {plans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className="card"
+                  style={{ padding: "20px 22px" }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                    <div
+                      style={{ cursor: "pointer", flex: 1 }}
+                      onClick={() => { setPlanDetail(plan); setPlanSearch(""); }}
+                    >
+                      <p style={{ fontSize: "17px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                        {plan.name}
+                      </p>
+                      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "3px" }}>
+                        {plan.items.length} exercise{plan.items.length !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeletePlan(plan.id)}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "2px 6px", fontSize: "14px", lineHeight: 1 }}
+                      title="Delete plan"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Exercise previews */}
+                  {plan.items.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "14px" }}>
+                      {plan.items.slice(0, 4).map((item) => (
+                        <span
+                          key={item.id}
+                          style={{
+                            fontSize: "11px",
+                            padding: "3px 10px",
+                            borderRadius: "5px",
+                            background: "var(--bg-hover)",
+                            color: "var(--text-secondary)",
+                            letterSpacing: "0.04em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {item.exercise.name}
+                        </span>
+                      ))}
+                      {plan.items.length > 4 && (
+                        <span style={{ fontSize: "11px", color: "var(--text-muted)", padding: "3px 6px" }}>
+                          +{plan.items.length - 4} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    className="btn-primary"
+                    onClick={() => handleStartSession(plan)}
+                    style={{ width: "100%", padding: "9px", fontSize: "14px" }}
+                  >
+                    ▶ Start Session
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ─── Modals ─────────────────────────────────────────────────────────── */}
+
+      {/* Add Exercise Modal */}
+      {showAdd && (
+        <Modal onClose={() => setShowAdd(false)}>
+          <h2 style={{ marginBottom: "28px" }}>New Exercise</h2>
+          <div style={{ marginBottom: "20px" }}>
+            <Label>EXERCISE NAME</Label>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              placeholder="e.g. Romanian Deadlift"
+              autoFocus
+              style={INPUT}
+            />
+          </div>
+          <div style={{ marginBottom: "28px" }}>
+            <Label>CATEGORY</Label>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {["push", "pull", "legs", "core", "cardio"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setNewCategory(cat)}
+                  style={{
+                    padding: "8px 18px",
+                    fontSize: "14px",
+                    letterSpacing: "0.04em",
+                    border: "1px solid",
+                    borderColor: newCategory === cat ? CATEGORY_COLORS[cat] : "var(--border)",
+                    color: newCategory === cat ? CATEGORY_COLORS[cat] : "var(--text-secondary)",
+                    background: newCategory === cat ? `${CATEGORY_COLORS[cat]}18` : "transparent",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontFamily: "Inter, sans-serif",
                     textTransform: "uppercase",
                   }}
                 >
-                  {exercise.category}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setRenameTarget(exercise);
-                    setRenameName(exercise.name);
-                  }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--text-muted)",
-                    cursor: "pointer",
-                    padding: "4px 6px",
-                    fontSize: "14px",
-                    borderRadius: "4px",
-                    lineHeight: 1,
-                  }}
-                  title="Rename"
-                >
-                  ✎
+                  {cat}
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteTarget(exercise);
-                  }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--text-muted)",
-                    cursor: "pointer",
-                    padding: "4px 6px",
-                    fontSize: "14px",
-                    borderRadius: "4px",
-                    lineHeight: 1,
-                  }}
-                  title="Delete"
-                >
-                  ✕
-                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="btn-primary" onClick={handleAdd} style={{ flex: 1 }}>Add Exercise</button>
+            <button className="btn-ghost" onClick={() => setShowAdd(false)}>Cancel</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* New Plan Modal */}
+      {showNewPlan && (
+        <Modal onClose={() => setShowNewPlan(false)}>
+          <h2 style={{ marginBottom: "24px" }}>New Plan</h2>
+          <Label>PLAN NAME</Label>
+          <input
+            type="text"
+            value={newPlanName}
+            onChange={(e) => setNewPlanName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCreatePlan()}
+            placeholder="e.g. Push Day"
+            autoFocus
+            style={{ ...INPUT, marginBottom: "20px" }}
+          />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="btn-primary" onClick={handleCreatePlan} style={{ flex: 1 }}>Create Plan</button>
+            <button className="btn-ghost" onClick={() => setShowNewPlan(false)}>Cancel</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Plan Detail Modal */}
+      {planDetail && (
+        <Modal onClose={() => setPlanDetail(null)} wide>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
+            <h2>{planDetail.name}</h2>
+            <button
+              className="btn-primary"
+              onClick={() => { setPlanDetail(null); handleStartSession(planDetail); }}
+              style={{ fontSize: "14px", padding: "8px 18px" }}
+            >
+              ▶ Start Session
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            {/* Current exercises */}
+            <div>
+              <Label>EXERCISES IN PLAN ({planDetail.items.length})</Label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "10px" }}>
+                {planDetail.items.length === 0 && (
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>No exercises yet. Add from the list →</p>
+                )}
+                {planDetail.items.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "9px 13px",
+                      background: "var(--bg-hover)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div>
+                      <p style={{ fontSize: "14px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                        {item.exercise.name}
+                      </p>
+                      <p style={{ fontSize: "11px", color: CATEGORY_COLORS[item.exercise.category] || "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
+                        {item.exercise.category}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveExerciseFromPlan(planDetail.id, item.id)}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "16px", padding: "2px 6px" }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Add exercises */}
+            <div>
+              <Label>ADD EXERCISES</Label>
+              <input
+                type="text"
+                placeholder="Search exercises..."
+                value={planSearch}
+                onChange={(e) => setPlanSearch(e.target.value)}
+                style={{ ...INPUT, marginTop: "10px", marginBottom: "8px" }}
+              />
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px", maxHeight: "260px", overflowY: "auto" }}>
+                {planDetailSearched.map((ex) => {
+                  const inPlan = planDetail.items.some((i) => i.exercise.id === ex.id);
+                  return (
+                    <div
+                      key={ex.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "8px 12px",
+                        borderRadius: "7px",
+                        background: inPlan ? "var(--accent-glow)" : "var(--bg-hover)",
+                        opacity: inPlan ? 0.6 : 1,
+                      }}
+                    >
+                      <p style={{ fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em", color: inPlan ? "var(--accent)" : "var(--text-primary)" }}>
+                        {ex.name}
+                      </p>
+                      {!inPlan && (
+                        <button
+                          onClick={() => handleAddExerciseToPlan(planDetail.id, ex.id)}
+                          style={{
+                            background: "none",
+                            border: "1px solid var(--border)",
+                            color: "var(--text-secondary)",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            lineHeight: 1,
+                            padding: "1px 8px",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          +
+                        </button>
+                      )}
+                      {inPlan && (
+                        <span style={{ fontSize: "11px", color: "var(--accent)", letterSpacing: "0.06em" }}>✓</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Rename Modal */}
+      {renameTarget && (
+        <Modal onClose={() => setRenameTarget(null)}>
+          <h2 style={{ marginBottom: "24px" }}>Rename Exercise</h2>
+          <input
+            type="text"
+            value={renameName}
+            onChange={(e) => setRenameName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleRename()}
+            autoFocus
+            style={{ ...INPUT, marginBottom: "20px" }}
+          />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="btn-primary" onClick={handleRename} style={{ flex: 1 }}>Save</button>
+            <button className="btn-ghost" onClick={() => setRenameTarget(null)}>Cancel</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <Modal onClose={() => setDeleteTarget(null)}>
+          <h2 style={{ marginBottom: "12px" }}>Delete Exercise</h2>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "28px" }}>
+            Delete <strong style={{ color: "var(--text-primary)" }}>{deleteTarget.name}</strong>? This cannot be undone.
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={handleDelete}
+              style={{
+                flex: 1,
+                padding: "10px",
+                background: "rgba(216,31,53,0.15)",
+                border: "1px solid rgba(216,31,53,0.4)",
+                borderRadius: "8px",
+                color: "var(--accent)",
+                cursor: "pointer",
+                fontFamily: "Inter, sans-serif",
+                fontSize: "14px",
+              }}
+            >
+              Delete
+            </button>
+            <button className="btn-ghost" onClick={() => setDeleteTarget(null)}>Cancel</button>
+          </div>
+        </Modal>
       )}
 
       {overview && (
@@ -437,94 +744,56 @@ export default function WorkoutsPage() {
           onClose={() => setOverview(null)}
         />
       )}
-
-      {/* Rename Modal */}
-      {renameTarget && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.75)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 50,
-          }}
-          onClick={() => setRenameTarget(null)}
-        >
-          <div
-            className="card"
-            style={{ padding: "32px", width: "420px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ marginBottom: "24px" }}>Rename Exercise</h2>
-            <input
-              type="text"
-              value={renameName}
-              onChange={(e) => setRenameName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleRename()}
-              autoFocus
-              style={{ ...INPUT, marginBottom: "20px" }}
-            />
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button className="btn-primary" onClick={handleRename} style={{ flex: 1 }}>
-                Save
-              </button>
-              <button className="btn-ghost" onClick={() => setRenameTarget(null)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirm Modal */}
-      {deleteTarget && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.75)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 50,
-          }}
-          onClick={() => setDeleteTarget(null)}
-        >
-          <div
-            className="card"
-            style={{ padding: "32px", width: "420px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ marginBottom: "12px" }}>Delete Exercise</h2>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "28px" }}>
-              Delete <strong style={{ color: "var(--text-primary)" }}>{deleteTarget.name}</strong>? This cannot be undone.
-            </p>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button
-                onClick={handleDelete}
-                style={{
-                  flex: 1,
-                  padding: "10px",
-                  background: "rgba(216,31,53,0.15)",
-                  border: "1px solid rgba(216,31,53,0.4)",
-                  borderRadius: "8px",
-                  color: "var(--accent)",
-                  cursor: "pointer",
-                  fontFamily: "Inter, sans-serif",
-                  fontSize: "14px",
-                }}
-              >
-                Delete
-              </button>
-              <button className="btn-ghost" onClick={() => setDeleteTarget(null)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
+  );
+}
+
+/* ─── Shared UI helpers ──────────────────────────────────────────────────── */
+
+function Modal({
+  children,
+  onClose,
+  wide,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  wide?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.75)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 50,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="card"
+        style={{ padding: "32px", width: wide ? "720px" : "420px", maxHeight: "80vh", overflowY: "auto" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      style={{
+        fontSize: "12px",
+        color: "var(--text-muted)",
+        letterSpacing: "0.1em",
+        marginBottom: "8px",
+      }}
+    >
+      {children}
+    </p>
   );
 }
