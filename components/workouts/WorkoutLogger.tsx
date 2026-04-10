@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWorkoutStore } from "@/store/useWorkoutStore";
 import { usePrefsStore } from "@/store/usePrefsStore";
 
@@ -24,6 +24,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   cardio: "#ffcc00",
 };
 
+const LB_PLATES = [2.5, 5, 10, 25, 45];
+const KG_PLATES = [1.25, 2.5, 5, 10, 20];
+const BAR_LB = 45;
+const BAR_KG = 20;
+
 export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props) {
   const { sets, addSet, removeSet } = useWorkoutStore();
   const { unit, toggleUnit, increment, setIncrement } = usePrefsStore();
@@ -34,6 +39,72 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+
+  // Plates keyboard state
+  const [platesMode, setPlatesMode] = useState(false);
+  const [plateCounts, setPlateCounts] = useState<Record<number, number>>({});
+  const [platesHistory, setPlatesHistory] = useState<number[]>([]);
+
+  const plates = unit === "lbs" ? LB_PLATES : KG_PLATES;
+  const barWeight = unit === "lbs" ? BAR_LB : BAR_KG;
+
+  const platesWeight = useMemo(
+    () => barWeight + plates.reduce((acc, p) => acc + p * (plateCounts[p] || 0) * 2, 0),
+    [plateCounts, plates, barWeight]
+  );
+
+  // Sync plates weight → weight state when in plates mode
+  useEffect(() => {
+    if (platesMode) setWeight(platesWeight);
+  }, [platesMode, platesWeight]);
+
+  // Reset plates when exercise changes
+  useEffect(() => {
+    if (platesMode) resetPlates();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedExercise?.id]);
+
+  // Reset plates when unit changes
+  useEffect(() => {
+    if (platesMode) resetPlates();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unit]);
+
+  const resetPlates = () => {
+    setPlateCounts({});
+    setPlatesHistory([]);
+  };
+
+  const enterPlatesMode = () => {
+    resetPlates();
+    setWeight(unit === "lbs" ? BAR_LB : BAR_KG);
+    setPlatesMode(true);
+  };
+
+  const exitPlatesMode = () => {
+    setPlatesMode(false);
+    resetPlates();
+  };
+
+  const addPlate = (plate: number) => {
+    setPlateCounts((prev) => ({ ...prev, [plate]: (prev[plate] || 0) + 1 }));
+    setPlatesHistory((prev) => [...prev, plate]);
+  };
+
+  const removePlate = (plate: number) => {
+    setPlateCounts((prev) => {
+      const count = prev[plate] || 0;
+      if (count <= 0) return prev;
+      return { ...prev, [plate]: count - 1 };
+    });
+  };
+
+  const undoPlate = () => {
+    const last = platesHistory[platesHistory.length - 1];
+    if (last === undefined) return;
+    removePlate(last);
+    setPlatesHistory((prev) => prev.slice(0, -1));
+  };
 
   const filtered = exercises.filter((e) =>
     e.name.toLowerCase().includes(search.toLowerCase())
@@ -76,6 +147,8 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
     ? sets.filter((s) => s.exerciseId === selectedExercise.id)
     : [];
 
+  // ── Style constants ───────────────────────────────────────────────────────
+
   const stepBtn: React.CSSProperties = {
     padding: "9px 14px",
     fontSize: "16px",
@@ -102,6 +175,20 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
     outline: "none",
     width: "80px",
   };
+
+  const iconBtn: React.CSSProperties = {
+    background: "var(--bg-hover)",
+    border: "1px solid var(--border)",
+    borderRadius: "8px",
+    color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontSize: "18px",
+    lineHeight: 1,
+    padding: "7px 12px",
+    fontFamily: "Inter, sans-serif",
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -234,9 +321,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
               }}
             >
               <div>
-                <h2 style={{ color: "var(--accent)" }}>
-                  {selectedExercise.name}
-                </h2>
+                <h2 style={{ color: "var(--accent)" }}>{selectedExercise.name}</h2>
                 <p style={{ fontSize: "16px", color: "var(--text-muted)", marginTop: "3px" }}>
                   {exerciseSets.length} sets logged this session
                 </p>
@@ -281,27 +366,201 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                     }}
                   >
                     WEIGHT ({unit})
+                    {!platesMode && (
+                      <button
+                        onClick={enterPlatesMode}
+                        title="Plates keyboard"
+                        style={{
+                          marginLeft: "10px",
+                          background: "none",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                          color: "var(--text-muted)",
+                          cursor: "pointer",
+                          fontSize: "11px",
+                          padding: "1px 7px",
+                          fontFamily: "Inter, sans-serif",
+                          letterSpacing: "0.04em",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        PLATES
+                      </button>
+                    )}
                   </label>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <button
-                      onClick={() => setWeight((w) => Math.max(0, w - increment))}
-                      style={stepBtn}
-                    >
-                      −{increment}
-                    </button>
-                    <input
-                      type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(Number(e.target.value))}
-                      style={numInput}
-                    />
-                    <button
-                      onClick={() => setWeight((w) => w + increment)}
-                      style={stepBtn}
-                    >
-                      +{increment}
-                    </button>
-                  </div>
+
+                  {platesMode ? (
+                    /* ── Plates Keyboard ─────────────────────────────── */
+                    <div>
+                      {/* Live total */}
+                      <div
+                        style={{
+                          textAlign: "center",
+                          marginBottom: "14px",
+                          padding: "10px",
+                          background: "var(--bg-hover)",
+                          borderRadius: "8px",
+                          border: "1px solid var(--border)",
+                        }}
+                      >
+                        <span style={{ fontSize: "28px", fontWeight: 700, color: "var(--accent)" }}>
+                          {platesWeight}
+                        </span>
+                        <span style={{ fontSize: "13px", color: "var(--text-muted)", marginLeft: "6px" }}>
+                          {unit}
+                        </span>
+                        <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px", letterSpacing: "0.06em" }}>
+                          BAR {barWeight} + PLATES {platesWeight - barWeight}
+                        </p>
+                      </div>
+
+                      {/* Plate columns */}
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: `repeat(${plates.length}, 1fr)`,
+                          gap: "6px",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        {plates.map((plate) => {
+                          const count = plateCounts[plate] || 0;
+                          return (
+                            <div
+                              key={plate}
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                gap: "5px",
+                              }}
+                            >
+                              {/* + button */}
+                              <button
+                                onClick={() => addPlate(plate)}
+                                style={{
+                                  width: "100%",
+                                  padding: "5px",
+                                  background: "var(--bg-hover)",
+                                  border: "1px solid var(--border)",
+                                  borderRadius: "6px",
+                                  color: "var(--text-primary)",
+                                  cursor: "pointer",
+                                  fontSize: "16px",
+                                  fontFamily: "Inter, sans-serif",
+                                  lineHeight: 1,
+                                }}
+                              >
+                                +
+                              </button>
+
+                              {/* Plate tile */}
+                              <div style={{ position: "relative", width: "100%" }}>
+                                <div
+                                  style={{
+                                    width: "100%",
+                                    aspectRatio: "1",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontSize: plate >= 10 ? "15px" : "13px",
+                                    fontWeight: 700,
+                                    color: count > 0 ? "var(--accent)" : "var(--text-primary)",
+                                    background: count > 0 ? "var(--accent-glow)" : "var(--bg-hover)",
+                                    borderRadius: "8px",
+                                    border: count > 0 ? "1px solid rgba(216,31,53,0.4)" : "1px solid var(--border)",
+                                    transition: "all 0.1s",
+                                  }}
+                                >
+                                  {plate}
+                                </div>
+                                {count > 0 && (
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      top: "-7px",
+                                      right: "-7px",
+                                      background: "var(--accent)",
+                                      borderRadius: "50%",
+                                      width: "18px",
+                                      height: "18px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: "10px",
+                                      fontWeight: 700,
+                                      color: "#fff",
+                                    }}
+                                  >
+                                    {count}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* − button */}
+                              <button
+                                onClick={() => removePlate(plate)}
+                                disabled={count === 0}
+                                style={{
+                                  width: "100%",
+                                  padding: "5px",
+                                  background: "var(--bg-hover)",
+                                  border: "1px solid var(--border)",
+                                  borderRadius: "6px",
+                                  color: count === 0 ? "var(--text-muted)" : "var(--text-primary)",
+                                  cursor: count === 0 ? "not-allowed" : "pointer",
+                                  fontSize: "16px",
+                                  fontFamily: "Inter, sans-serif",
+                                  lineHeight: 1,
+                                  opacity: count === 0 ? 0.4 : 1,
+                                }}
+                              >
+                                −
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bottom bar */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <button onClick={exitPlatesMode} style={iconBtn} title="Back to input">
+                          ⌨
+                        </button>
+                        <button
+                          onClick={undoPlate}
+                          disabled={platesHistory.length === 0}
+                          style={{
+                            ...iconBtn,
+                            opacity: platesHistory.length === 0 ? 0.35 : 1,
+                            cursor: platesHistory.length === 0 ? "not-allowed" : "pointer",
+                          }}
+                          title="Undo last plate"
+                        >
+                          ↩
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* ── Normal Weight Input ─────────────────────────── */
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <button
+                        onClick={() => setWeight((w) => Math.max(0, w - increment))}
+                        style={stepBtn}
+                      >
+                        −{increment}
+                      </button>
+                      <input
+                        type="number"
+                        value={weight}
+                        onChange={(e) => setWeight(Number(e.target.value))}
+                        style={numInput}
+                      />
+                      <button onClick={() => setWeight((w) => w + increment)} style={stepBtn}>
+                        +{increment}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Reps */}
@@ -318,10 +577,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                     REPS
                   </label>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <button
-                      onClick={() => setReps((r) => Math.max(1, r - 1))}
-                      style={stepBtn}
-                    >
+                    <button onClick={() => setReps((r) => Math.max(1, r - 1))} style={stepBtn}>
                       −1
                     </button>
                     <input
@@ -337,38 +593,41 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
                 </div>
               </div>
 
-              {/* Increment selector */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "16px",
-                }}
-              >
-                <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
-                  INCREMENT:
-                </span>
-                {[1, 5].map((val) => (
-                  <button
-                    key={val}
-                    onClick={() => setIncrement(val as 1 | 5)}
-                    style={{
-                      padding: "6px 16px",
-                      fontSize: "14px",
-                      border: "1px solid",
-                      borderColor: increment === val ? "var(--accent)" : "var(--border)",
-                      color: increment === val ? "var(--accent)" : "var(--text-secondary)",
-                      background: increment === val ? "var(--accent-glow)" : "transparent",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      fontFamily: "Inter, sans-serif",
-                    }}
-                  >
-                    {val}
-                  </button>
-                ))}
-              </div>
+              {/* Increment selector (hidden in plates mode) */}
+              {!platesMode && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+                    INCREMENT:
+                  </span>
+                  {[1, 5].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setIncrement(val as 1 | 5)}
+                      style={{
+                        padding: "6px 16px",
+                        fontSize: "14px",
+                        border: "1px solid",
+                        borderColor: increment === val ? "var(--accent)" : "var(--border)",
+                        color: increment === val ? "var(--accent)" : "var(--text-secondary)",
+                        background: increment === val ? "var(--accent-glow)" : "transparent",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {platesMode && <div style={{ marginBottom: "16px" }} />}
 
               {/* Notes */}
               <input
@@ -400,9 +659,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
             {/* Logged sets */}
             {exerciseSets.length > 0 && (
               <div className="card" style={{ padding: "18px 22px" }}>
-                <h3 style={{ marginBottom: "14px" }}>
-                  Logged Sets
-                </h3>
+                <h3 style={{ marginBottom: "14px" }}>Logged Sets</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {exerciseSets.map((s) => (
                     <div
@@ -444,11 +701,7 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
           </>
         )}
 
-        <button
-          className="btn-ghost"
-          onClick={onFinish}
-          style={{ marginTop: "auto" }}
-        >
+        <button className="btn-ghost" onClick={onFinish} style={{ marginTop: "auto" }}>
           Finish Session
         </button>
       </div>
