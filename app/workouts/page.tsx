@@ -3,6 +3,7 @@
 import WorkoutLogger from "@/components/workouts/WorkoutLogger";
 import ExerciseOverview from "@/components/workouts/ExerciseOverview";
 import { useWorkoutStore } from "@/store/useWorkoutStore";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useEffect, useState } from "react";
 
 interface Exercise {
@@ -46,6 +47,8 @@ const INPUT: React.CSSProperties = {
 };
 
 export default function WorkoutsPage() {
+  const isMobile = useIsMobile();
+
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"exercises" | "plans">("exercises");
@@ -165,7 +168,6 @@ export default function WorkoutsPage() {
   };
 
   const handleAddExerciseToPlan = async (planId: string, exerciseId: string) => {
-    // Avoid duplicates
     const plan = plans.find((p) => p.id === planId);
     if (plan?.items.some((item) => item.exercise.id === exerciseId)) return;
     const res = await fetch(`/api/plans/${planId}/items`, {
@@ -209,24 +211,27 @@ export default function WorkoutsPage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "28px",
+            marginBottom: isMobile ? "16px" : "28px",
           }}
         >
           <div>
-            <h1>{activeSessionName || "Active Session"}</h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "16px", marginTop: "4px" }}>
+            <h1 style={{ fontSize: isMobile ? "22px" : undefined }}>
+              {activeSessionName || "Active Session"}
+            </h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginTop: "4px" }}>
               Select an exercise and log your sets
             </p>
           </div>
           <div
             style={{
-              padding: "8px 18px",
+              padding: "6px 14px",
               background: "var(--accent-glow)",
               border: "1px solid rgba(216,31,53,0.35)",
               borderRadius: "20px",
-              fontSize: "14px",
+              fontSize: "13px",
               color: "var(--accent)",
               letterSpacing: "0.06em",
+              whiteSpace: "nowrap",
             }}
           >
             ● LIVE
@@ -249,36 +254,50 @@ export default function WorkoutsPage() {
       <div
         style={{
           display: "flex",
+          flexDirection: isMobile ? "column" : "row",
           justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "24px",
+          alignItems: isMobile ? "flex-start" : "flex-start",
+          gap: isMobile ? "14px" : "0",
+          marginBottom: "20px",
         }}
       >
         <div>
-          <h1>Workouts</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "16px", marginTop: "4px" }}>
+          <h1 style={{ fontSize: isMobile ? "24px" : undefined }}>Workouts</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginTop: "4px" }}>
             Manage exercises, plans, and start sessions
           </p>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px", width: isMobile ? "100%" : "auto" }}>
           {tab === "exercises" && (
-            <button className="btn-ghost" onClick={() => setShowAdd(true)}>
+            <button
+              className="btn-ghost"
+              onClick={() => setShowAdd(true)}
+              style={{ flex: isMobile ? 1 : undefined, fontSize: "14px", padding: "9px 16px" }}
+            >
               + Add Exercise
             </button>
           )}
           {tab === "plans" && (
-            <button className="btn-ghost" onClick={() => setShowNewPlan(true)}>
+            <button
+              className="btn-ghost"
+              onClick={() => setShowNewPlan(true)}
+              style={{ flex: isMobile ? 1 : undefined, fontSize: "14px", padding: "9px 16px" }}
+            >
               + New Plan
             </button>
           )}
-          <button className="btn-primary" onClick={() => handleStartSession()}>
+          <button
+            className="btn-primary"
+            onClick={() => handleStartSession()}
+            style={{ flex: isMobile ? 1 : undefined, fontSize: "14px", padding: "9px 16px" }}
+          >
             ▶ Start Session
           </button>
         </div>
       </div>
 
       {/* Tab toggle */}
-      <div style={{ display: "flex", gap: "4px", marginBottom: "22px" }}>
+      <div style={{ display: "flex", gap: "4px", marginBottom: "18px" }}>
         {(["exercises", "plans"] as const).map((t) => (
           <button
             key={t}
@@ -306,15 +325,24 @@ export default function WorkoutsPage() {
       {/* ── EXERCISES TAB ── */}
       {tab === "exercises" && (
         <>
-          {/* Category Filter */}
-          <div style={{ display: "flex", gap: "6px", marginBottom: "22px" }}>
+          {/* Category Filter — scrollable on mobile */}
+          <div
+            style={{
+              display: "flex",
+              gap: "6px",
+              marginBottom: "18px",
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
+              paddingBottom: "2px",
+            }}
+          >
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
                 style={{
-                  padding: "8px 18px",
-                  fontSize: "14px",
+                  padding: "7px 16px",
+                  fontSize: "13px",
                   letterSpacing: "0.04em",
                   border: "1px solid",
                   borderColor: filter === cat ? "var(--accent)" : "var(--border)",
@@ -325,6 +353,7 @@ export default function WorkoutsPage() {
                   transition: "all 0.15s",
                   fontFamily: "Inter, sans-serif",
                   textTransform: "uppercase",
+                  flexShrink: 0,
                 }}
               >
                 {cat}
@@ -332,15 +361,15 @@ export default function WorkoutsPage() {
             ))}
           </div>
 
-          {/* Exercise Grid */}
+          {/* Exercise Grid — 2-col desktop, 1-col mobile */}
           {loading ? (
             <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>Loading exercises...</p>
           ) : (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "10px",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+                gap: "8px",
               }}
             >
               {filteredExercises.map((exercise) => (
@@ -349,7 +378,7 @@ export default function WorkoutsPage() {
                   className="card"
                   onClick={() => setOverview(exercise)}
                   style={{
-                    padding: "18px 22px",
+                    padding: isMobile ? "14px 16px" : "18px 22px",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -359,25 +388,35 @@ export default function WorkoutsPage() {
                   onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
                   onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
                 >
-                  <div>
-                    <p style={{ fontSize: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.02em",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {exercise.name}
                     </p>
                     {exercise.isDefault && (
-                      <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "3px", letterSpacing: "0.08em" }}>
+                      <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px", letterSpacing: "0.08em" }}>
                         DEFAULT
                       </p>
                     )}
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0, marginLeft: "8px" }}>
                     <span
                       style={{
-                        fontSize: "11px",
-                        letterSpacing: "0.1em",
+                        fontSize: "10px",
+                        letterSpacing: "0.08em",
                         color: CATEGORY_COLORS[exercise.category] || "var(--text-muted)",
                         border: `1px solid ${CATEGORY_COLORS[exercise.category] || "var(--border)"}`,
-                        padding: "4px 12px",
-                        borderRadius: "6px",
+                        padding: "3px 9px",
+                        borderRadius: "5px",
                         background: `${CATEGORY_COLORS[exercise.category] || "#888"}10`,
                         textTransform: "uppercase",
                       }}
@@ -386,14 +425,14 @@ export default function WorkoutsPage() {
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); setRenameTarget(exercise); setRenameName(exercise.name); }}
-                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", fontSize: "14px", borderRadius: "4px", lineHeight: 1 }}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "6px", fontSize: "15px", lineHeight: 1 }}
                       title="Rename"
                     >
                       ✎
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget(exercise); }}
-                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", fontSize: "14px", borderRadius: "4px", lineHeight: 1 }}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "6px", fontSize: "15px", lineHeight: 1 }}
                       title="Delete"
                     >
                       ✕
@@ -434,22 +473,18 @@ export default function WorkoutsPage() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "10px",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+                gap: "8px",
               }}
             >
               {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="card"
-                  style={{ padding: "20px 22px" }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                <div key={plan.id} className="card" style={{ padding: isMobile ? "16px" : "20px 22px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
                     <div
                       style={{ cursor: "pointer", flex: 1 }}
                       onClick={() => { setPlanDetail(plan); setPlanSearch(""); }}
                     >
-                      <p style={{ fontSize: "17px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+                      <p style={{ fontSize: "16px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.02em" }}>
                         {plan.name}
                       </p>
                       <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "3px" }}>
@@ -458,22 +493,21 @@ export default function WorkoutsPage() {
                     </div>
                     <button
                       onClick={() => handleDeletePlan(plan.id)}
-                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "2px 6px", fontSize: "14px", lineHeight: 1 }}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", fontSize: "14px", lineHeight: 1 }}
                       title="Delete plan"
                     >
                       ✕
                     </button>
                   </div>
 
-                  {/* Exercise previews */}
                   {plan.items.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "14px" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
                       {plan.items.slice(0, 4).map((item) => (
                         <span
                           key={item.id}
                           style={{
                             fontSize: "11px",
-                            padding: "3px 10px",
+                            padding: "3px 9px",
                             borderRadius: "5px",
                             background: "var(--bg-hover)",
                             color: "var(--text-secondary)",
@@ -508,11 +542,10 @@ export default function WorkoutsPage() {
 
       {/* ─── Modals ─────────────────────────────────────────────────────────── */}
 
-      {/* Add Exercise Modal */}
       {showAdd && (
-        <Modal onClose={() => setShowAdd(false)}>
-          <h2 style={{ marginBottom: "28px" }}>New Exercise</h2>
-          <div style={{ marginBottom: "20px" }}>
+        <Modal onClose={() => setShowAdd(false)} isMobile={isMobile}>
+          <h2 style={{ marginBottom: "24px" }}>New Exercise</h2>
+          <div style={{ marginBottom: "18px" }}>
             <Label>EXERCISE NAME</Label>
             <input
               type="text"
@@ -524,7 +557,7 @@ export default function WorkoutsPage() {
               style={INPUT}
             />
           </div>
-          <div style={{ marginBottom: "28px" }}>
+          <div style={{ marginBottom: "24px" }}>
             <Label>CATEGORY</Label>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {["push", "pull", "legs", "core", "cardio"].map((cat) => (
@@ -532,8 +565,8 @@ export default function WorkoutsPage() {
                   key={cat}
                   onClick={() => setNewCategory(cat)}
                   style={{
-                    padding: "8px 18px",
-                    fontSize: "14px",
+                    padding: "8px 16px",
+                    fontSize: "13px",
                     letterSpacing: "0.04em",
                     border: "1px solid",
                     borderColor: newCategory === cat ? CATEGORY_COLORS[cat] : "var(--border)",
@@ -557,10 +590,9 @@ export default function WorkoutsPage() {
         </Modal>
       )}
 
-      {/* New Plan Modal */}
       {showNewPlan && (
-        <Modal onClose={() => setShowNewPlan(false)}>
-          <h2 style={{ marginBottom: "24px" }}>New Plan</h2>
+        <Modal onClose={() => setShowNewPlan(false)} isMobile={isMobile}>
+          <h2 style={{ marginBottom: "20px" }}>New Plan</h2>
           <Label>PLAN NAME</Label>
           <input
             type="text"
@@ -578,27 +610,27 @@ export default function WorkoutsPage() {
         </Modal>
       )}
 
-      {/* Plan Detail Modal */}
+      {/* Plan Detail Modal — stacks vertically on mobile */}
       {planDetail && (
-        <Modal onClose={() => setPlanDetail(null)} wide>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
-            <h2>{planDetail.name}</h2>
+        <Modal onClose={() => setPlanDetail(null)} isMobile={isMobile} wide={!isMobile}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", gap: "12px" }}>
+            <h2 style={{ fontSize: isMobile ? "18px" : undefined }}>{planDetail.name}</h2>
             <button
               className="btn-primary"
               onClick={() => { setPlanDetail(null); handleStartSession(planDetail); }}
-              style={{ fontSize: "14px", padding: "8px 18px" }}
+              style={{ fontSize: "13px", padding: "8px 16px", whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              ▶ Start Session
+              ▶ Start
             </button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {/* Current exercises */}
             <div>
-              <Label>EXERCISES IN PLAN ({planDetail.items.length})</Label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "10px" }}>
+              <Label>IN PLAN ({planDetail.items.length})</Label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
                 {planDetail.items.length === 0 && (
-                  <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>No exercises yet. Add from the list →</p>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>No exercises yet. Add from below.</p>
                 )}
                 {planDetail.items.map((item) => (
                   <div
@@ -622,7 +654,7 @@ export default function WorkoutsPage() {
                     </div>
                     <button
                       onClick={() => handleRemoveExerciseFromPlan(planDetail.id, item.id)}
-                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "16px", padding: "2px 6px" }}
+                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "16px", padding: "4px 8px" }}
                     >
                       ✕
                     </button>
@@ -639,9 +671,9 @@ export default function WorkoutsPage() {
                 placeholder="Search exercises..."
                 value={planSearch}
                 onChange={(e) => setPlanSearch(e.target.value)}
-                style={{ ...INPUT, marginTop: "10px", marginBottom: "8px" }}
+                style={{ ...INPUT, marginTop: "8px", marginBottom: "8px" }}
               />
-              <div style={{ display: "flex", flexDirection: "column", gap: "5px", maxHeight: "260px", overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "5px", maxHeight: "220px", overflowY: "auto" }}>
                 {planDetailSearched.map((ex) => {
                   const inPlan = planDetail.items.some((i) => i.exercise.id === ex.id);
                   return (
@@ -651,16 +683,15 @@ export default function WorkoutsPage() {
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        padding: "8px 12px",
+                        padding: "9px 12px",
                         borderRadius: "7px",
                         background: inPlan ? "var(--accent-glow)" : "var(--bg-hover)",
-                        opacity: inPlan ? 0.6 : 1,
                       }}
                     >
                       <p style={{ fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em", color: inPlan ? "var(--accent)" : "var(--text-primary)" }}>
                         {ex.name}
                       </p>
-                      {!inPlan && (
+                      {!inPlan ? (
                         <button
                           onClick={() => handleAddExerciseToPlan(planDetail.id, ex.id)}
                           style={{
@@ -670,15 +701,14 @@ export default function WorkoutsPage() {
                             cursor: "pointer",
                             fontSize: "18px",
                             lineHeight: 1,
-                            padding: "1px 8px",
+                            padding: "2px 10px",
                             borderRadius: "5px",
                           }}
                         >
                           +
                         </button>
-                      )}
-                      {inPlan && (
-                        <span style={{ fontSize: "11px", color: "var(--accent)", letterSpacing: "0.06em" }}>✓</span>
+                      ) : (
+                        <span style={{ fontSize: "11px", color: "var(--accent)" }}>✓</span>
                       )}
                     </div>
                   );
@@ -689,17 +719,16 @@ export default function WorkoutsPage() {
         </Modal>
       )}
 
-      {/* Rename Modal */}
       {renameTarget && (
-        <Modal onClose={() => setRenameTarget(null)}>
-          <h2 style={{ marginBottom: "24px" }}>Rename Exercise</h2>
+        <Modal onClose={() => setRenameTarget(null)} isMobile={isMobile}>
+          <h2 style={{ marginBottom: "20px" }}>Rename Exercise</h2>
           <input
             type="text"
             value={renameName}
             onChange={(e) => setRenameName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleRename()}
             autoFocus
-            style={{ ...INPUT, marginBottom: "20px" }}
+            style={{ ...INPUT, marginBottom: "18px" }}
           />
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="btn-primary" onClick={handleRename} style={{ flex: 1 }}>Save</button>
@@ -708,11 +737,10 @@ export default function WorkoutsPage() {
         </Modal>
       )}
 
-      {/* Delete Confirm Modal */}
       {deleteTarget && (
-        <Modal onClose={() => setDeleteTarget(null)}>
+        <Modal onClose={() => setDeleteTarget(null)} isMobile={isMobile}>
           <h2 style={{ marginBottom: "12px" }}>Delete Exercise</h2>
-          <p style={{ color: "var(--text-secondary)", marginBottom: "28px" }}>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "24px", fontSize: "15px" }}>
             Delete <strong style={{ color: "var(--text-primary)" }}>{deleteTarget.name}</strong>? This cannot be undone.
           </p>
           <div style={{ display: "flex", gap: "8px" }}>
@@ -720,7 +748,7 @@ export default function WorkoutsPage() {
               onClick={handleDelete}
               style={{
                 flex: 1,
-                padding: "10px",
+                padding: "11px",
                 background: "rgba(216,31,53,0.15)",
                 border: "1px solid rgba(216,31,53,0.4)",
                 borderRadius: "8px",
@@ -754,19 +782,21 @@ function Modal({
   children,
   onClose,
   wide,
+  isMobile,
 }: {
   children: React.ReactNode;
   onClose: () => void;
   wide?: boolean;
+  isMobile?: boolean;
 }) {
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.75)",
+        background: "rgba(0,0,0,0.8)",
         display: "flex",
-        alignItems: "center",
+        alignItems: isMobile ? "flex-end" : "center",
         justifyContent: "center",
         zIndex: 50,
       }}
@@ -774,7 +804,14 @@ function Modal({
     >
       <div
         className="card"
-        style={{ padding: "32px", width: wide ? "720px" : "420px", maxHeight: "80vh", overflowY: "auto" }}
+        style={{
+          padding: isMobile ? "24px 20px 32px" : "32px",
+          width: isMobile ? "100%" : wide ? "680px" : "420px",
+          maxWidth: "100%",
+          maxHeight: isMobile ? "90vh" : "85vh",
+          overflowY: "auto",
+          borderRadius: isMobile ? "20px 20px 0 0" : "14px",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

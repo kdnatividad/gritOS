@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWorkoutStore } from "@/store/useWorkoutStore";
 import { usePrefsStore } from "@/store/usePrefsStore";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Exercise {
   id: string;
@@ -32,6 +33,8 @@ const BAR_KG = 20;
 export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props) {
   const { sets, addSet, removeSet } = useWorkoutStore();
   const { unit, toggleUnit, increment, setIncrement } = usePrefsStore();
+
+  const isMobile = useIsMobile();
 
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [reps, setReps] = useState(10);
@@ -190,12 +193,17 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // On mobile: show exercise list OR logger panel, not both
+  const showList = !isMobile || !selectedExercise;
+  const showLogger = !isMobile || !!selectedExercise;
+
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "280px 1fr",
-        gap: "16px",
+        display: isMobile ? "flex" : "grid",
+        flexDirection: isMobile ? "column" : undefined,
+        gridTemplateColumns: isMobile ? undefined : "280px 1fr",
+        gap: "12px",
         flex: 1,
         minHeight: 0,
       }}
@@ -203,7 +211,13 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
       {/* Exercise Selector */}
       <div
         className="card"
-        style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
+        style={{
+          display: showList ? "flex" : "none",
+          flexDirection: "column",
+          overflow: "hidden",
+          flex: isMobile ? "1 1 auto" : undefined,
+          minHeight: isMobile ? 0 : undefined,
+        }}
       >
         <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
           <input
@@ -291,7 +305,27 @@ export default function WorkoutLogger({ exercises, sessionId, onFinish }: Props)
       </div>
 
       {/* Logger Panel */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div style={{ display: showLogger ? "flex" : "none", flexDirection: "column", gap: "12px" }}>
+        {/* Mobile back button */}
+        {isMobile && selectedExercise && (
+          <button
+            onClick={() => setSelectedExercise(null)}
+            style={{
+              alignSelf: "flex-start",
+              background: "none",
+              border: "1px solid var(--border)",
+              borderRadius: "8px",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+              fontSize: "14px",
+              padding: "7px 14px",
+              fontFamily: "Inter, sans-serif",
+              letterSpacing: "0.04em",
+            }}
+          >
+            ← Exercises
+          </button>
+        )}
         {!selectedExercise ? (
           <div
             className="card"
