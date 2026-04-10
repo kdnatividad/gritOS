@@ -167,7 +167,23 @@ input, textarea, button, select {
 
   /* Main content: full width, padding for bottom nav */
   .layout-main {
-    padding: 20px 16px 88px !important;
+    padding: 20px 16px 96px !important;
+  }
+
+  /*
+   * Page root divs use height:"100%" which caps them to the viewport.
+   * In a flex scroll container that means overflow from nested children
+   * never grows the scroll area — content gets cut off.
+   * Reset to auto so the page div grows with its content and the main scrolls.
+   */
+  .layout-main > * {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Filter tabs: force no-wrap so overflow-x:auto works */
+  .filter-scroll {
+    flex-wrap: nowrap !important;
   }
 
   /* Dashboard: stack left + right columns */
