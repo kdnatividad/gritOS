@@ -677,12 +677,30 @@ export default function ExerciseDetail({ exercise, onClose }: Props) {
             {/* Sheet header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <h3 style={{ fontSize: "15px" }}>Log Set {todaySetCount + 1}</h3>
-              <button
-                onClick={() => setShowForm(false)}
-                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "20px", lineHeight: 1, padding: "4px" }}
-              >
-                ×
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <button
+                  onClick={toggleUnit}
+                  style={{
+                    padding: "5px 12px",
+                    fontSize: "12px",
+                    letterSpacing: "0.06em",
+                    border: "1px solid rgba(216,31,53,0.4)",
+                    color: "var(--accent)",
+                    background: "var(--accent-glow)",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontFamily: "Inter, sans-serif",
+                  }}
+                >
+                  {unit.toUpperCase()}
+                </button>
+                <button
+                  onClick={() => setShowForm(false)}
+                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "20px", lineHeight: 1, padding: "4px" }}
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
             {!platesMode ? (
