@@ -446,44 +446,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Quick Access */}
-          <div className="card" style={{ padding: "22px 24px" }}>
-            <p
-              style={{
-                fontSize: "12px",
-                letterSpacing: "0.1em",
-                color: "var(--text-muted)",
-                marginBottom: "14px",
-                textTransform: "uppercase",
-              }}
-            >
-              Quick Access
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <ActionLink
-                href="/workouts"
-                label="Start Workout"
-                sub="Log a new session"
-                icon={
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M2 8h1.5v-2h1.5v5H3.5V9.5H2V8zM12.5 8H14v1.5h-1.5V11H11V6h1.5v2zM5.5 5.5h5v5h-5z" />
-                  </svg>
-                }
-              />
-              <ActionLink
-                href="/analytics"
-                label="Analytics"
-                sub="Track your progress"
-                icon={
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <rect x="1" y="9" width="3" height="6" rx="1" />
-                    <rect x="6" y="5" width="3" height="10" rx="1" />
-                    <rect x="11" y="1" width="3" height="14" rx="1" />
-                  </svg>
-                }
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -627,55 +589,3 @@ function SummaryCard({
   );
 }
 
-function ActionLink({
-  href,
-  label,
-  sub,
-  icon,
-}: {
-  href: string;
-  label: string;
-  sub: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <a href={href} style={{ textDecoration: "none" }}>
-      <div
-        className="card"
-        style={{
-          padding: "13px 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: "13px",
-          cursor: "pointer",
-          transition: "border-color 0.15s",
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.borderColor = "var(--accent)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.borderColor = "var(--border)")
-        }
-      >
-        <span
-          style={{
-            color: "var(--accent)",
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          {icon}
-        </span>
-        <div>
-          <p style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", textTransform: "uppercase" }}>
-            {label}
-          </p>
-          <p style={{ fontSize: "14px", color: "var(--text-muted)", marginTop: "2px" }}>
-            {sub}
-          </p>
-        </div>
-      </div>
-    </a>
-  );
-}
