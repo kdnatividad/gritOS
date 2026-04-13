@@ -71,8 +71,9 @@ input, textarea, button, select {
   font-weight: 600;
 }
 
-/* Brand logo keeps Unica One */
-.brand-font {
+/* Brand logo and headings use Unica One */
+.brand-font,
+h1, h2, h3, h4, h5, h6 {
   font-family: 'Unica One', sans-serif;
 }
 
