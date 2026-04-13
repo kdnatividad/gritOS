@@ -82,7 +82,9 @@ export default function Dashboard() {
   useEffect(() => {
     fetch("/api/sessions")
       .then((r) => r.json())
-      .then((sessions: Session[]) => {
+      .catch(() => [])
+      .then((data: unknown) => {
+        const sessions: Session[] = Array.isArray(data) ? data : [];
         const totalSets = sessions.reduce(
           (acc, s) => acc + (s.sets?.length || 0),
           0

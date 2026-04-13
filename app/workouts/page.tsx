@@ -79,11 +79,11 @@ export default function WorkoutsPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/exercises").then((r) => r.json()),
-      fetch("/api/plans").then((r) => r.json()),
+      fetch("/api/exercises").then((r) => r.json()).catch(() => []),
+      fetch("/api/plans").then((r) => r.json()).catch(() => []),
     ]).then(([exData, plData]) => {
-      setExercises(exData);
-      setPlans(plData);
+      setExercises(Array.isArray(exData) ? exData : []);
+      setPlans(Array.isArray(plData) ? plData : []);
       setLoading(false);
     });
   }, []);
