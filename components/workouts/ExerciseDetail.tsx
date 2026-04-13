@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePrefsStore } from "@/store/usePrefsStore";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import {
@@ -83,6 +83,13 @@ function fmtNum(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 }
 
+function convertWeight(weight: number, fromUnit: string, toUnit: string): number {
+  if (fromUnit === toUnit) return weight;
+  if (fromUnit === "kg" && toUnit === "lbs") return Math.round(weight * 2.20462);
+  if (fromUnit === "lbs" && toUnit === "kg") return Math.round(weight * 0.453592 * 10) / 10;
+  return weight;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -110,7 +117,7 @@ export default function ExerciseDetail({ exercise, onClose }: Props) {
 
   // Log form state
   const [showForm, setShowForm] = useState(false);
-  const [weight, setWeight] = useState(60);
+  const [weight, setWeight] = useState(() => unit === "lbs" ? 135 : 60);
   const [reps, setReps] = useState(10);
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -128,7 +135,19 @@ export default function ExerciseDetail({ exercise, onClose }: Props) {
   );
 
   useEffect(() => { if (platesMode) setWeight(platesWeight); }, [platesMode, platesWeight]);
-  useEffect(() => { if (platesMode) resetPlates(); }, [unit]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When unit toggles: convert normal-mode weight, or reset plates
+  const prevUnitRef = useRef(unit);
+  useEffect(() => {
+    if (prevUnitRef.current === unit) return;
+    const prev = prevUnitRef.current;
+    prevUnitRef.current = unit;
+    if (platesMode) {
+      resetPlates();
+    } else {
+      setWeight((w) => convertWeight(w, prev, unit));
+    }
+  }, [unit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Data fetching ─────────────────────────────────────────────────────────
 
@@ -442,9 +461,9 @@ export default function ExerciseDetail({ exercise, onClose }: Props) {
                           {set.reps} <span style={{ fontSize: "12px", fontWeight: 400 }}>rep</span>
                         </span>
 
-                        {/* Weight */}
+                        {/* Weight — convert to active unit for display */}
                         <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--accent)" }}>
-                          {set.weight} <span style={{ fontSize: "12px", fontWeight: 400 }}>{set.unit}</span>
+                          {convertWeight(set.weight, set.unit, unit)} <span style={{ fontSize: "12px", fontWeight: 400 }}>{unit}</span>
                         </span>
                       </div>
                     ))}
