@@ -167,7 +167,7 @@ export default function WorkoutsPage() {
     filter === "all" ? exercises : exercises.filter((e) => e.category === filter);
 
   const planDetailSearched = exercises.filter((e) =>
-    e.name.toLowerCase().includes(planSearch.toLowerCase())
+    e?.name?.toLowerCase().includes(planSearch.toLowerCase())
   );
 
   // ── Exercise detail view ──────────────────────────────────────────────────
@@ -435,7 +435,7 @@ export default function WorkoutsPage() {
                             cursor: "pointer",
                           }}
                         >
-                          {item.exercise.name}
+                          {item.exercise?.name}
                         </span>
                       ))}
                       {plan.items.length > 4 && (
@@ -553,10 +553,10 @@ export default function WorkoutsPage() {
                   >
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
-                        {item.exercise.name}
+                        {item.exercise?.name}
                       </p>
-                      <p style={{ fontSize: "11px", color: CATEGORY_COLORS[item.exercise.category] || "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
-                        {item.exercise.category}
+                      <p style={{ fontSize: "11px", color: CATEGORY_COLORS[item.exercise?.category] || "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
+                        {item.exercise?.category}
                       </p>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -599,7 +599,7 @@ export default function WorkoutsPage() {
                       }}
                     >
                       <p style={{ fontSize: "13px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em", color: inPlan ? "var(--accent)" : "var(--text-primary)" }}>
-                        {ex.name}
+                        {ex?.name}
                       </p>
                       {!inPlan ? (
                         <button
