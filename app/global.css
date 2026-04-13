@@ -68,6 +68,7 @@ h4 {
 
 input, textarea, button, select {
   font-family: 'Inter', sans-serif;
+  font-weight: 600;
 }
 
 /* Brand logo keeps Unica One */
