@@ -345,7 +345,16 @@ export default function ExerciseDetail({ exercise, onClose }: Props) {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="filter-scroll" style={{ marginBottom: "16px", gap: "6px" }}>
+      <div
+        className={isMobile ? undefined : "filter-scroll"}
+        style={{
+          marginBottom: "16px",
+          gap: "6px",
+          ...(isMobile
+            ? { display: "flex", width: "100%" }
+            : {}),
+        }}
+      >
         {(["sets", "analyze", "1rm"] as MainTab[]).map((t) => (
           <button
             key={t}
@@ -363,7 +372,7 @@ export default function ExerciseDetail({ exercise, onClose }: Props) {
               borderRadius: "8px",
               cursor: "pointer",
               transition: "all 0.15s",
-              flexShrink: 0,
+              ...(isMobile ? { flex: 1, flexShrink: 0 } : { flexShrink: 0 }),
             }}
           >
             {t === "1rm" ? "1RM" : t === "sets" ? "Sets" : "Analyze"}
