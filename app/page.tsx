@@ -135,7 +135,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", paddingBottom: "96px" }}>
       {/* Header */}
       <div
         style={{
@@ -320,7 +320,7 @@ export default function Dashboard() {
           >
             <SummaryCard label="Days Trained" value={stats.totalWorkouts} />
             <SummaryCard label="Total Sets" value={stats.totalSets} />
-            <SummaryCard label="Avg Sets / Session" value={stats.avgSets} />
+            <SummaryCard label="Avg Sets" value={stats.avgSets} />
             <SummaryCard
               label="Top Exercise"
               value={stats.mostUsedExercise}
