@@ -38,8 +38,11 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const { name, category } = await req.json()
+    if (!name?.trim()) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    }
     const exercise = await prisma.exercise.create({
-      data: { name, category, isDefault: false },
+      data: { name: name.trim(), category, isDefault: false },
     })
     return NextResponse.json(exercise)
   } catch (error) {

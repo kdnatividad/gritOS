@@ -88,7 +88,9 @@ export default function WorkoutsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newName.trim(), category: newCategory }),
     });
+    if (!res.ok) return;
     const created = await res.json();
+    if (!created?.id) return;
     setExercises((prev) => [...prev, created]);
     setNewName("");
     setNewCategory("push");
