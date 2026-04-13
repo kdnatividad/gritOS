@@ -3,13 +3,12 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   _req: Request,
-  ctx: RouteContext<'/api/exercises/[id]/history'>
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await ctx.params
+  const { id } = await params
 
   const sets = await prisma.setLog.findMany({
     where: { exerciseId: id },
-    include: { session: true },
     orderBy: { createdAt: 'asc' },
   })
 
@@ -17,23 +16,21 @@ export async function GET(
     return NextResponse.json({ sessions: [], stats: null })
   }
 
-  // Group sets by session
-  const bySession = new Map<
-    string,
-    { date: string; unit: string; sets: typeof sets }
-  >()
+  // Group sets by calendar day (using createdAt, no session dependency)
+  const byDate = new Map<string, { date: string; unit: string; sets: typeof sets }>()
   for (const set of sets) {
-    if (!bySession.has(set.sessionId)) {
-      bySession.set(set.sessionId, {
-        date: set.session.date.toISOString(),
+    const dateKey = set.createdAt.toDateString()
+    if (!byDate.has(dateKey)) {
+      byDate.set(dateKey, {
+        date: set.createdAt.toISOString(),
         unit: set.unit,
         sets: [],
       })
     }
-    bySession.get(set.sessionId)!.sets.push(set)
+    byDate.get(dateKey)!.sets.push(set)
   }
 
-  const sessions = Array.from(bySession.values()).map(({ date, unit, sets: s }) => {
+  const sessions = Array.from(byDate.values()).map(({ date, unit, sets: s }) => {
     const maxWeight = Math.max(...s.map((x) => x.weight))
     const totalVolume = s.reduce((acc, x) => acc + x.weight * x.reps, 0)
     const est1RM = Math.max(...s.map((x) => x.weight * (1 + x.reps / 30)))

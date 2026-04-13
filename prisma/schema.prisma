@@ -45,10 +45,10 @@ model WorkoutSession {
 }
 
 model SetLog {
-  id         String         @id @default(cuid())
-  session    WorkoutSession @relation(fields: [sessionId], references: [id])
-  sessionId  String
-  exercise   Exercise       @relation(fields: [exerciseId], references: [id])
+  id         String          @id @default(cuid())
+  session    WorkoutSession? @relation(fields: [sessionId], references: [id])
+  sessionId  String?
+  exercise   Exercise        @relation(fields: [exerciseId], references: [id])
   exerciseId String
   reps       Int
   weight     Float

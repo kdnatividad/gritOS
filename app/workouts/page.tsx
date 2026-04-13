@@ -1,8 +1,6 @@
 "use client";
 
-import WorkoutLogger from "@/components/workouts/WorkoutLogger";
-import ExerciseOverview from "@/components/workouts/ExerciseOverview";
-import { useWorkoutStore } from "@/store/useWorkoutStore";
+import ExerciseDetail from "@/components/workouts/ExerciseDetail";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useEffect, useState } from "react";
 
@@ -58,7 +56,7 @@ export default function WorkoutsPage() {
   const [newName, setNewName] = useState("");
   const [newCategory, setNewCategory] = useState("push");
   const [filter, setFilter] = useState("all");
-  const [overview, setOverview] = useState<Exercise | null>(null);
+  const [detail, setDetail] = useState<Exercise | null>(null);
   const [renameTarget, setRenameTarget] = useState<Exercise | null>(null);
   const [renameName, setRenameName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Exercise | null>(null);
@@ -70,13 +68,6 @@ export default function WorkoutsPage() {
   const [planDetail, setPlanDetail] = useState<Plan | null>(null);
   const [planSearch, setPlanSearch] = useState("");
 
-  // Session state
-  const [view, setView] = useState<"list" | "logger">("list");
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [activeSessionName, setActiveSessionName] = useState<string | undefined>();
-
-  const { startSession, endSession } = useWorkoutStore();
-
   useEffect(() => {
     Promise.all([
       fetch("/api/exercises").then((r) => r.json()).catch(() => []),
@@ -87,28 +78,6 @@ export default function WorkoutsPage() {
       setLoading(false);
     });
   }, []);
-
-  // ── Session handlers ──────────────────────────────────────────────────────
-
-  const handleStartSession = async (plan?: Plan) => {
-    const res = await fetch("/api/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planId: plan?.id || null }),
-    });
-    const session = await res.json();
-    setSessionId(session.id);
-    setActiveSessionName(plan?.name);
-    startSession(session.id);
-    setView("logger");
-  };
-
-  const handleFinish = () => {
-    endSession();
-    setSessionId(null);
-    setActiveSessionName(undefined);
-    setView("list");
-  };
 
   // ── Exercise handlers ─────────────────────────────────────────────────────
 
@@ -201,47 +170,12 @@ export default function WorkoutsPage() {
     e.name.toLowerCase().includes(planSearch.toLowerCase())
   );
 
-  // ── Logger view ───────────────────────────────────────────────────────────
+  // ── Exercise detail view ──────────────────────────────────────────────────
 
-  if (view === "logger" && sessionId) {
+  if (detail) {
     return (
       <div style={{ height: isMobile ? "auto" : "100%", display: "flex", flexDirection: "column" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: isMobile ? "16px" : "28px",
-          }}
-        >
-          <div>
-            <h1 style={{ fontSize: isMobile ? "22px" : undefined }}>
-              {activeSessionName || "Active Session"}
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginTop: "4px" }}>
-              Select an exercise and log your sets
-            </p>
-          </div>
-          <div
-            style={{
-              padding: "6px 14px",
-              background: "var(--accent-glow)",
-              border: "1px solid rgba(216,31,53,0.35)",
-              borderRadius: "20px",
-              fontSize: "13px",
-              color: "var(--accent)",
-              letterSpacing: "0.06em",
-              whiteSpace: "nowrap",
-            }}
-          >
-            ● LIVE
-          </div>
-        </div>
-        <WorkoutLogger
-          exercises={exercises}
-          sessionId={sessionId}
-          onFinish={handleFinish}
-        />
+        <ExerciseDetail exercise={detail} onClose={() => setDetail(null)} />
       </div>
     );
   }
@@ -264,7 +198,7 @@ export default function WorkoutsPage() {
         <div>
           <h1 style={{ fontSize: isMobile ? "24px" : undefined }}>Workouts</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginTop: "4px" }}>
-            Manage exercises, plans, and start sessions
+            Manage exercises and plans
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", width: isMobile ? "100%" : "auto" }}>
@@ -286,13 +220,6 @@ export default function WorkoutsPage() {
               + New Plan
             </button>
           )}
-          <button
-            className="btn-primary"
-            onClick={() => handleStartSession()}
-            style={{ flex: isMobile ? 1 : undefined, fontSize: "14px", padding: "9px 16px" }}
-          >
-            ▶ Start Session
-          </button>
         </div>
       </div>
 
@@ -325,7 +252,7 @@ export default function WorkoutsPage() {
       {/* ── EXERCISES TAB ── */}
       {tab === "exercises" && (
         <>
-          {/* Category Filter — horizontally scrollable */}
+          {/* Category filter */}
           <div className="filter-scroll" style={{ marginBottom: "18px", paddingBottom: "2px" }}>
             {categories.map((cat) => (
               <button
@@ -352,7 +279,7 @@ export default function WorkoutsPage() {
             ))}
           </div>
 
-          {/* Exercise Grid — 2-col desktop, 1-col mobile */}
+          {/* Exercise grid */}
           {loading ? (
             <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>Loading exercises...</p>
           ) : (
@@ -367,7 +294,7 @@ export default function WorkoutsPage() {
                 <div
                   key={exercise.id}
                   className="card"
-                  onClick={() => setOverview(exercise)}
+                  onClick={() => setDetail(exercise)}
                   style={{
                     padding: isMobile ? "14px 16px" : "18px 22px",
                     display: "flex",
@@ -492,10 +419,11 @@ export default function WorkoutsPage() {
                   </div>
 
                   {plan.items.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
                       {plan.items.slice(0, 4).map((item) => (
                         <span
                           key={item.id}
+                          onClick={() => { setPlanDetail(plan); setPlanSearch(""); }}
                           style={{
                             fontSize: "11px",
                             padding: "3px 9px",
@@ -504,6 +432,7 @@ export default function WorkoutsPage() {
                             color: "var(--text-secondary)",
                             letterSpacing: "0.04em",
                             textTransform: "uppercase",
+                            cursor: "pointer",
                           }}
                         >
                           {item.exercise.name}
@@ -516,14 +445,6 @@ export default function WorkoutsPage() {
                       )}
                     </div>
                   )}
-
-                  <button
-                    className="btn-primary"
-                    onClick={() => handleStartSession(plan)}
-                    style={{ width: "100%", padding: "9px", fontSize: "14px" }}
-                  >
-                    ▶ Start Session
-                  </button>
                 </div>
               ))}
             </div>
@@ -601,22 +522,15 @@ export default function WorkoutsPage() {
         </Modal>
       )}
 
-      {/* Plan Detail Modal — stacks vertically on mobile */}
+      {/* Plan Detail Modal */}
       {planDetail && (
         <Modal onClose={() => setPlanDetail(null)} isMobile={isMobile} wide={!isMobile}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", gap: "12px" }}>
             <h2 style={{ fontSize: isMobile ? "18px" : undefined }}>{planDetail.name}</h2>
-            <button
-              className="btn-primary"
-              onClick={() => { setPlanDetail(null); handleStartSession(planDetail); }}
-              style={{ fontSize: "13px", padding: "8px 16px", whiteSpace: "nowrap", flexShrink: 0 }}
-            >
-              ▶ Start
-            </button>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {/* Current exercises */}
+            {/* Exercises in plan — tap to log */}
             <div>
               <Label>IN PLAN ({planDetail.items.length})</Label>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
@@ -633,7 +547,9 @@ export default function WorkoutsPage() {
                       padding: "9px 13px",
                       background: "var(--bg-hover)",
                       borderRadius: "8px",
+                      cursor: "pointer",
                     }}
+                    onClick={() => { setPlanDetail(null); setDetail(item.exercise); }}
                   >
                     <div>
                       <p style={{ fontSize: "14px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.02em" }}>
@@ -643,12 +559,15 @@ export default function WorkoutsPage() {
                         {item.exercise.category}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleRemoveExerciseFromPlan(planDetail.id, item.id)}
-                      style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "16px", padding: "4px 8px" }}
-                    >
-                      ✕
-                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Log →</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleRemoveExerciseFromPlan(planDetail.id, item.id); }}
+                        style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "16px", padding: "4px 8px" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -754,14 +673,6 @@ export default function WorkoutsPage() {
             <button className="btn-ghost" onClick={() => setDeleteTarget(null)}>Cancel</button>
           </div>
         </Modal>
-      )}
-
-      {overview && (
-        <ExerciseOverview
-          exerciseId={overview.id}
-          exerciseName={overview.name}
-          onClose={() => setOverview(null)}
-        />
       )}
     </div>
   );

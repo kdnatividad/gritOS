@@ -10,25 +10,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface Session {
-  id: number;
-  date: string;
-  plan?: { name: string };
-  sets?: { exercise?: { name: string }; reps: number; weight: number }[];
+interface RecentExercise {
+  exerciseId: string;
+  exerciseName: string;
+  category: string;
+  planName: string | null;
+  setCount: number;
+  lastDate: string;
 }
 
 interface DashboardStats {
   totalWorkouts: number;
   totalSets: number;
   mostUsedExercise: string;
-  recentSessions: Session[];
+  recentExercises: RecentExercise[];
   weeklyData: { day: string; sets: number }[];
   weeklyWorkouts: number;
   streak: number;
   avgSets: number;
 }
 
-function buildWeeklyData(sessions: Session[]) {
+interface SetEntry {
+  id: string;
+  createdAt: string;
+  exercise?: { name: string };
+}
+
+function buildWeeklyData(sets: SetEntry[]) {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const today = new Date();
   const result: { day: string; sets: number }[] = [];
@@ -37,21 +45,21 @@ function buildWeeklyData(sessions: Session[]) {
     d.setDate(today.getDate() - i);
     const label = days[d.getDay()];
     const dateStr = d.toDateString();
-    const setsCount = sessions
-      .filter((s) => new Date(s.date).toDateString() === dateStr)
-      .reduce((acc, s) => acc + (s.sets?.length || 0), 0);
+    const setsCount = sets.filter(
+      (s) => new Date(s.createdAt).toDateString() === dateStr
+    ).length;
     result.push({ day: label, sets: setsCount });
   }
   return result;
 }
 
-function computeStreak(sessions: Session[]) {
-  if (!sessions.length) return 0;
+function computeStreak(sets: SetEntry[]) {
+  if (!sets.length) return 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const workoutDays = new Set(
-    sessions.map((s) => {
-      const d = new Date(s.date);
+  const trainedDays = new Set(
+    sets.map((s) => {
+      const d = new Date(s.createdAt);
       d.setHours(0, 0, 0, 0);
       return d.getTime();
     })
@@ -59,8 +67,8 @@ function computeStreak(sessions: Session[]) {
   let streak = 0;
   const DAY = 86400000;
   let cursor = today.getTime();
-  if (!workoutDays.has(cursor)) cursor -= DAY;
-  while (workoutDays.has(cursor)) {
+  if (!trainedDays.has(cursor)) cursor -= DAY;
+  while (trainedDays.has(cursor)) {
     streak++;
     cursor -= DAY;
   }
@@ -72,7 +80,7 @@ export default function Dashboard() {
     totalWorkouts: 0,
     totalSets: 0,
     mostUsedExercise: "—",
-    recentSessions: [],
+    recentExercises: [],
     weeklyData: [],
     weeklyWorkouts: 0,
     streak: 0,
@@ -80,43 +88,43 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    fetch("/api/sessions")
-      .then((r) => r.json())
-      .catch(() => [])
-      .then((data: unknown) => {
-        const sessions: Session[] = Array.isArray(data) ? data : [];
-        const totalSets = sessions.reduce(
-          (acc, s) => acc + (s.sets?.length || 0),
-          0
-        );
-        const exerciseCount: Record<string, number> = {};
-        sessions.forEach((s) =>
-          s.sets?.forEach((set) => {
-            const name = set.exercise?.name || "Unknown";
-            exerciseCount[name] = (exerciseCount[name] || 0) + 1;
-          })
-        );
-        const mostUsed =
-          Object.entries(exerciseCount).sort((a, b) => b[1] - a[1])[0]?.[0] ||
-          "—";
-        const weeklyData = buildWeeklyData(sessions);
-        const weeklyWorkouts = weeklyData.filter((d) => d.sets > 0).length;
-        const streak = computeStreak(sessions);
-        const avgSets = sessions.length
-          ? Math.round(totalSets / sessions.length)
-          : 0;
-        setStats({
-          totalWorkouts: sessions.length,
-          totalSets,
-          mostUsedExercise: mostUsed,
-          recentSessions: sessions.slice(0, 7),
-          weeklyData,
-          weeklyWorkouts,
-          streak,
-          avgSets,
-        });
-      })
-      .catch(() => {});
+    Promise.all([
+      fetch("/api/sets").then((r) => r.json()).catch(() => []),
+      fetch("/api/exercises/recent").then((r) => r.json()).catch(() => []),
+    ]).then(([setsData, recentData]) => {
+      const sets: SetEntry[] = Array.isArray(setsData) ? setsData : [];
+      const recentExercises: RecentExercise[] = Array.isArray(recentData) ? recentData : [];
+
+      const totalSets = sets.length;
+
+      const exerciseCount: Record<string, number> = {};
+      sets.forEach((s) => {
+        const name = s.exercise?.name || "Unknown";
+        exerciseCount[name] = (exerciseCount[name] || 0) + 1;
+      });
+      const mostUsed =
+        Object.entries(exerciseCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+      const weeklyData = buildWeeklyData(sets);
+      const weeklyWorkouts = weeklyData.filter((d) => d.sets > 0).length;
+      const streak = computeStreak(sets);
+
+      const uniqueDays = new Set(
+        sets.map((s) => new Date(s.createdAt).toDateString())
+      ).size;
+      const avgSets = uniqueDays ? Math.round(totalSets / uniqueDays) : 0;
+
+      setStats({
+        totalWorkouts: uniqueDays,
+        totalSets,
+        mostUsedExercise: mostUsed,
+        recentExercises,
+        weeklyData,
+        weeklyWorkouts,
+        streak,
+        avgSets,
+      });
+    });
   }, []);
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -146,7 +154,7 @@ export default function Dashboard() {
           </p>
         </div>
         <a href="/workouts" style={{ textDecoration: "none" }}>
-          <button className="btn-primary">+ Start Workout</button>
+          <button className="btn-primary">+ Log Exercise</button>
         </a>
       </div>
 
@@ -310,7 +318,7 @@ export default function Dashboard() {
               gap: "12px",
             }}
           >
-            <SummaryCard label="Total Sessions" value={stats.totalWorkouts} />
+            <SummaryCard label="Days Trained" value={stats.totalWorkouts} />
             <SummaryCard label="Total Sets" value={stats.totalSets} />
             <SummaryCard label="Avg Sets / Session" value={stats.avgSets} />
             <SummaryCard
@@ -324,7 +332,7 @@ export default function Dashboard() {
         {/* ── RIGHT COLUMN ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
 
-          {/* Recent Sessions */}
+          {/* Recent Exercises */}
           <div className="card" style={{ padding: "22px 24px" }}>
             <p
               style={{
@@ -335,10 +343,10 @@ export default function Dashboard() {
                 textTransform: "uppercase",
               }}
             >
-              Recent Sessions
+              Recent Exercises
             </p>
 
-            {stats.recentSessions.length === 0 ? (
+            {stats.recentExercises.length === 0 ? (
               <div
                 style={{
                   textAlign: "center",
@@ -347,13 +355,13 @@ export default function Dashboard() {
                 }}
               >
                 <p style={{ fontSize: "28px", marginBottom: "8px" }}>◎</p>
-                <p style={{ fontSize: "16px" }}>No sessions yet</p>
+                <p style={{ fontSize: "16px" }}>No sets logged yet</p>
                 <p style={{ fontSize: "16px", marginTop: "6px" }}>
                   <a
                     href="/workouts"
                     style={{ color: "var(--accent)", textDecoration: "none" }}
                   >
-                    Start your first workout →
+                    Log your first set →
                   </a>
                 </p>
               </div>
@@ -369,13 +377,13 @@ export default function Dashboard() {
                     marginBottom: "4px",
                   }}
                 >
-                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>SESSION</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>EXERCISE</span>
                   <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>SETS</span>
                   <span style={{ fontSize: "12px", color: "var(--text-muted)", letterSpacing: "0.1em" }}>DATE</span>
                 </div>
-                {stats.recentSessions.map((session, i) => (
+                {stats.recentExercises.map((ex, i) => (
                   <div
-                    key={session.id}
+                    key={ex.exerciseId}
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr auto auto",
@@ -383,39 +391,30 @@ export default function Dashboard() {
                       alignItems: "center",
                       padding: "10px 0",
                       borderBottom:
-                        i < stats.recentSessions.length - 1
+                        i < stats.recentExercises.length - 1
                           ? "1px solid var(--border)"
                           : "none",
-                      opacity: i > 4 ? 0.45 : 1,
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "2px",
-                          height: "18px",
-                          background: "var(--accent)",
-                          borderRadius: "1px",
-                          flexShrink: 0,
-                        }}
-                      />
+                    <div style={{ overflow: "hidden" }}>
                       <p
                         style={{
-                          fontSize: "16px",
+                          fontSize: "15px",
+                          fontWeight: 600,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.01em",
                         }}
                       >
-                        {session.plan?.name || "Open Session"}
+                        {ex.exerciseName}
                       </p>
+                      {ex.planName && (
+                        <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
+                          {ex.planName}
+                        </p>
+                      )}
                     </div>
                     <p
                       style={{
@@ -425,7 +424,7 @@ export default function Dashboard() {
                         fontWeight: 600,
                       }}
                     >
-                      {session.sets?.length || 0}
+                      {ex.setCount}
                     </p>
                     <p
                       style={{
@@ -435,7 +434,7 @@ export default function Dashboard() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {new Date(session.date).toLocaleDateString("en-US", {
+                      {new Date(ex.lastDate).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}
